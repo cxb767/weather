@@ -245,33 +245,64 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 </div>
 
 <!-- 날씨 위장 화면 -->
-<div id="weather-screen" style="display:flex;position:fixed;inset:0;background:linear-gradient(180deg,#0d1b2a 0%,#1a3a5c 40%,#0d2235 100%);z-index:5;flex-direction:column;overflow:hidden;">
+<div id="weather-screen" style="display:flex;position:fixed;inset:0;background:linear-gradient(180deg,#1a6fa8 0%,#2d9be0 35%,#1a5a8a 100%);z-index:5;flex-direction:column;overflow:hidden;">
   <!-- 상단 바 -->
   <div style="display:flex;justify-content:space-between;align-items:center;padding:max(20px,env(safe-area-inset-top)) 20px 10px;flex-shrink:0;">
-    <div style="font-size:13px;color:rgba(255,255,255,0.6)" id="w-time"></div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.6)">날씨</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.6)">🔍</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.7)" id="w-time"></div>
+    <div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9)">날씨</div>
+    <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.12);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;">⚙️ 설정</button>
   </div>
 
   <!-- 현재 위치 날씨 (메인) -->
-  <div style="padding:10px 24px 20px;flex-shrink:0;">
-    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:4px;" id="w-loc">📍 내 위치</div>
+  <div style="padding:10px 24px 16px;flex-shrink:0;">
+    <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-bottom:4px;" id="w-loc">📍 내 위치</div>
     <div style="font-size:72px;font-weight:200;color:#fff;line-height:1;" id="w-temp">--°</div>
-    <div style="font-size:16px;color:rgba(255,255,255,0.8);margin:4px 0;" id="w-desc">불러오는 중...</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.5);" id="w-hl">최고 --° 최저 --°</div>
-  </div>
-
-  <!-- 시간별 예보 -->
-  <div style="padding:0 16px;margin-bottom:16px;flex-shrink:0;">
-    <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);">
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;letter-spacing:1px;">시간별 예보</div>
-      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+    <div style="font-size:16px;color:rgba(255,255,255,0.9);margin:4px 0;" id="w-desc">불러오는 중...</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.6);" id="w-hl">최고 --° 최저 --°</div>
+    <!-- 습도/바람/일출일몰 -->
+    <div style="display:flex;gap:14px;margin-top:10px;" id="w-extra">
+      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-humid">💧 --%</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-wind">💨 -- m/s</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-sun">🌅 --:--</div>
     </div>
   </div>
 
-  <!-- 도시 목록 (길게 누르면 진입) -->
-  <div style="flex:1;overflow-y:auto;padding:0 16px;padding-bottom:max(16px,env(safe-area-inset-bottom));" id="w-cities">
-    <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">도시 목록</div>
+  <div style="flex:1;overflow-y:auto;padding:0 16px;padding-bottom:max(16px,env(safe-area-inset-bottom));">
+    <!-- 시간별 예보 -->
+    <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);margin-bottom:12px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">시간별 예보</div>
+      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+    </div>
+
+    <!-- 주간 예보 -->
+    <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);margin-bottom:12px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">주간 예보</div>
+      <div id="w-weekly"></div>
+    </div>
+
+    <!-- 도시 목록 -->
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">도시별 날씨</div>
+      <div id="w-cities"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 개발자 메뉴 팝업 -->
+<div id="dev-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:#1a1a1a;border-radius:20px;padding:28px 24px;width:88%;max-width:320px;border:1px solid #2a2a2a;text-align:center;">
+    <div style="font-size:28px;margin-bottom:12px;">🔒</div>
+    <div style="font-size:16px;font-weight:700;color:#e0e0e0;margin-bottom:8px;">개발자 전용 메뉴</div>
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
+    <div style="font-size:12px;color:#444;margin-bottom:20px;">문의: weatherkit-dev@gmail.com</div>
+    <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
+      <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
+        style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
+        onkeydown="if(event.key==='Enter')devAuth()">
+      <div id="dev-pw-err" style="font-size:12px;color:#c0392b;min-height:16px;"></div>
+    </div>
+    <button id="dev-confirm-btn" style="background:#2a2a2a;color:#c8c8c8;border:1px solid #333;border-radius:12px;padding:12px 32px;font-size:14px;font-weight:600;cursor:pointer;width:100%;"
+      onclick="closeDevMenu()">확인</button>
   </div>
 </div>
 
@@ -363,6 +394,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div class="hdr-right">
       <button class="icon-btn" id="emg-btn" onclick="openEmergency()" title="전체삭제" style="color:#7a2020">🗑️</button>
       <button class="icon-btn" onclick="openSheet()">⚙️</button>
+      <button class="icon-btn" onclick="forceQuit()" title="강제종료" style="color:#555;font-size:12px;font-weight:700;width:auto;padding:0 8px;">강제종료</button>
     </div>
   </div>
 
@@ -503,15 +535,16 @@ const CITIES = [
   {name:'울산',lat:35.5384,lon:129.3114},
   {name:'제주',lat:33.4996,lon:126.5312},
 ];
-
+const DAYS=['일','월','화','수','목','금','토'];
 const WX_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
 const WX_DESC={0:'맑음',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
 
 let weatherLoaded=false;
+let devPressTimer=null;
 
 async function fetchWeather(lat,lon){
   try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,apparent_temperature&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&timezone=Asia%2FSeoul&forecast_days=1`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&hourly=temperature_2m,weather_code&timezone=Asia%2FSeoul&forecast_days=7`);
     return await r.json();
   }catch{return null;}
 }
@@ -521,7 +554,6 @@ async function loadMainWeather(){
   try{
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:4000}));
     lat=pos.coords.latitude;lon=pos.coords.longitude;
-    // 역지오코딩
     try{
       const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
       const gd=await gr.json();
@@ -530,13 +562,15 @@ async function loadMainWeather(){
   }catch{}
   const d=await fetchWeather(lat,lon);
   if(!d)return;
-  const c=d.current;
-  const daily=d.daily;
-  const code=c.weather_code;
+  const c=d.current,daily=d.daily,code=c.weather_code;
   document.getElementById('w-loc').textContent='📍 '+locName;
   document.getElementById('w-temp').textContent=Math.round(c.temperature_2m)+'°';
   document.getElementById('w-desc').textContent=(WX_ICON[code]||'🌡️')+' '+(WX_DESC[code]||'');
   document.getElementById('w-hl').textContent=`최고 ${Math.round(daily.temperature_2m_max[0])}° 최저 ${Math.round(daily.temperature_2m_min[0])}°`;
+  document.getElementById('w-humid').textContent='💧 '+c.relative_humidity_2m+'%';
+  document.getElementById('w-wind').textContent='💨 '+Math.round(c.wind_speed_10m)+' m/s';
+  const sunrise=daily.sunrise[0]?.slice(11,16)||'--:--';
+  document.getElementById('w-sun').textContent='🌅 '+sunrise;
   // 시간별
   const now=new Date().getHours();
   const hourly=d.hourly;
@@ -545,46 +579,32 @@ async function loadMainWeather(){
     const ic=WX_ICON[hourly.weather_code[i]]||'🌡️';
     const tmp=Math.round(hourly.temperature_2m[i]);
     const label=i===now?'지금':`${i}시`;
-    hw.innerHTML+=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:40px"><div style="font-size:11px;color:rgba(255,255,255,0.5)">${label}</div><div style="font-size:16px">${ic}</div><div style="font-size:12px;color:#fff;font-weight:600">${tmp}°</div></div>`;
+    hw.innerHTML+=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:40px"><div style="font-size:11px;color:rgba(255,255,255,0.6)">${label}</div><div style="font-size:16px">${ic}</div><div style="font-size:12px;color:#fff;font-weight:600">${tmp}°</div></div>`;
+  }
+  // 주간 예보
+  const ww=document.getElementById('w-weekly');ww.innerHTML='';
+  for(let i=0;i<7;i++){
+    const date=new Date(daily.time[i]);
+    const day=i===0?'오늘':i===1?'내일':DAYS[date.getDay()]+'요일';
+    const ic=WX_ICON[daily.weather_code[i]]||'🌡️';
+    const mx=Math.round(daily.temperature_2m_max[i]);
+    const mn=Math.round(daily.temperature_2m_min[i]);
+    ww.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="font-size:13px;color:rgba(255,255,255,0.8);width:60px">${day}</div><div style="font-size:18px">${ic}</div><div style="font-size:13px;color:rgba(255,255,255,0.5)">${mn}°</div><div style="font-size:13px;color:#fff;font-weight:600">${mx}°</div></div>`;
   }
 }
 
 async function loadCityWeather(){
   const container=document.getElementById('w-cities');
-  // 기존 도시 카드 지우고 로딩 표시
-  const oldCards=container.querySelectorAll('.city-card');
-  oldCards.forEach(c=>c.remove());
-
+  container.innerHTML='';
   for(const city of CITIES){
     const card=document.createElement('div');
     card.className='city-card';
-    card.style.cssText='background:rgba(255,255,255,0.07);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);user-select:none;-webkit-user-select:none;';
-    card.innerHTML=`<div><div style="font-size:16px;font-weight:600;color:#fff">${city.name}</div><div class="city-desc" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">불러오는 중...</div></div><div class="city-temp" style="font-size:28px;font-weight:200;color:#fff">--°</div>`;
-
-    // 길게 누르면 채팅 진입
-    let pressTimer=null;
-    const startPress=()=>{
-      card.style.opacity='0.5';
-      pressTimer=setTimeout(()=>{
-        card.style.opacity='1';
-        hideWeather();
-      },800);
-    };
-    const endPress=()=>{card.style.opacity='1';clearTimeout(pressTimer);};
-    card.addEventListener('touchstart',startPress,{passive:true});
-    card.addEventListener('touchend',endPress);
-    card.addEventListener('touchcancel',endPress);
-    card.addEventListener('mousedown',startPress);
-    card.addEventListener('mouseup',endPress);
-    card.addEventListener('mouseleave',endPress);
-
+    card.style.cssText='background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);';
+    card.innerHTML=`<div><div style="font-size:16px;font-weight:600;color:#fff">${city.name}</div><div class="city-desc" style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">불러오는 중...</div></div><div class="city-temp" style="font-size:28px;font-weight:200;color:#fff">--°</div>`;
     container.appendChild(card);
-
-    // 날씨 비동기 로드
     fetchWeather(city.lat,city.lon).then(d=>{
       if(!d)return;
-      const c=d.current;
-      const code=c.weather_code;
+      const c=d.current,code=c.weather_code;
       const desc=card.querySelector('.city-desc');
       const temp=card.querySelector('.city-temp');
       if(desc)desc.textContent=(WX_ICON[code]||'')+' '+(WX_DESC[code]||'');
@@ -605,17 +625,61 @@ async function showWeather(){
   ws.style.display='flex';
   updateTime();
   setInterval(updateTime,10000);
-  if(!weatherLoaded){
-    weatherLoaded=true;
-    loadMainWeather();
-    loadCityWeather();
-  }
+  if(!weatherLoaded){weatherLoaded=true;loadMainWeather();loadCityWeather();}
 }
 
 function hideWeather(){
   document.getElementById('weather-screen').style.display='none';
   document.getElementById('sl').classList.add('on');
   setTimeout(()=>document.getElementById('al-inp').focus(),300);
+}
+
+// 개발자 메뉴
+function openDevMenu(){
+  document.getElementById('dev-auth-wrap').style.display='none';
+  document.getElementById('dev-pw-inp').value='';
+  document.getElementById('dev-pw-err').textContent='';
+  document.getElementById('dev-popup').style.display='flex';
+  // 확인 버튼 길게 누르면 비번 입력창 표시
+  const btn=document.getElementById('dev-confirm-btn');
+  btn.onmousedown=btn.ontouchstart=()=>{
+    devPressTimer=setTimeout(()=>{
+      document.getElementById('dev-auth-wrap').style.display='block';
+      document.getElementById('dev-pw-inp').focus();
+      btn.textContent='인증';
+      btn.onclick=devAuth;
+    },800);
+  };
+  btn.onmouseup=btn.ontouchend=btn.onmouseleave=()=>clearTimeout(devPressTimer);
+}
+function closeDevMenu(){
+  document.getElementById('dev-popup').style.display='none';
+  const btn=document.getElementById('dev-confirm-btn');
+  btn.textContent='확인';
+  btn.onclick=closeDevMenu;
+}
+async function devAuth(){
+  const pw=document.getElementById('dev-pw-inp').value;
+  const stored=localStorage.getItem('sl_pw');
+  const e=document.getElementById('dev-pw-err');
+  if(!pw){e.textContent='코드를 입력하세요';return;}
+  if(stored&&await hPw(pw)!==stored){e.textContent='인증 실패';document.getElementById('dev-pw-inp').value='';return;}
+  closeDevMenu();hideWeather();
+}
+
+// 강제종료
+function forceQuit(){
+  if(!confirm('강제종료 하시겠어요?'))return;
+  inRoom=false;
+  if(presIv)clearInterval(presIv);
+  if(idleIv)clearInterval(idleIv);
+  if(unsubM){unsubM();unsubM=null;}
+  if(unsubP){unsubP();unsubP=null;}
+  if(unsubPr){unsubPr();unsubPr=null;}
+  try{db.collection('rooms').doc(roomId).collection('presence').doc(myId).delete();}catch{}
+  document.getElementById('sch').classList.remove('on');
+  weatherLoaded=false;
+  showWeather();
 }
 
 // PWA
@@ -939,7 +1003,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 
 ['su-c','s-code'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',function(){this.value=this.value.toUpperCase();});});
 
-const mf={name:'날씨',short_name:'날씨',start_url:'.',display:'standalone',background_color:'#0d1b2a',theme_color:'#0d1b2a',icons:[{src:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFKElEQVR4nO3dO7IbRQAF0IYiIDEbeFVOyJw5cOKQLbBOtuCQhIDMmROqvAGckJnAqCyLkd5o1DP9uefEtl5Pz73dPXoflQIAAAAAAAAAAAAAAAAA0L3vWg+gphdPrz63HkOKTx/fT5GdoS9C4PsxaiGGG7TQ92+kMgwzUMEfzwhF6H6Agj++novQ7cAEfz49FqG7AQn+/HoqwvetB3BO+DP0dJ+7KUBPk8L+ernfzbeiXiaCdloeiZruAMJPKW1z0KwAws+5VnloUgDhZ0mLXBxeAOHnlqPz0c27QNDCoQWw+rPGkTk5rADCzz2OysshBRB+tjgiN54BiLZ7Aaz+PGLv/NgBiLZrAaz+1LBnjuwARNvtp/Cs/t/6+7cf7/4/P/36zw4jGdcePzX6Q+0X5IstgX/uNRSivl12gNTVv0bo10otQ+1dwA5QwZHBv/yaqUWoRQEe0CL418agCNtUPwIlHH96CP41CUWoeQyyA9yh5+Cf2BHu4/sAK40Q/nOjjbcVBVhh1DCNOu4jVX0GmO38P1OAZjsS1XoOsANcMVP4S5nvempRgAWzhmXW63qEAlyYPSSzX9+9FOBMSjhSrnMNBSCaAvwnbVVMu95rFKDkhiH1us/FFyA9BOnXH18AskUXIH31O0meh+gCQGwBkle9JanzEVsAKCW0AKmr3XMS5yWyAHASV4DEVe4eafMTVwA4pwBEiypA2va+VdI8RRUALikA0RSAaDEFSDrX1pAyXzEFgCUKQDQFIJoCEE0BiKYARFMAoikA0XxEUiMfXr5b9e9+/uuXnUeSTQEOtDb01/6PMtSnAAfYEvxbr6MI9SjAjmoF/9rrKsLjYh6Cj/6MrL3Cf9TXmO0zxa6JKcCRjgh/i681IwWo6MPLd00CqQTbeQZ4QE/B+/DynWeCDaJ2gFrn2lYr/XNqjSnl/F+KHWC1HgO/xPcN7qMAzxgl+Eu8Xfq8Kh83f/Li6dXnmq+3l6Xfdx056GusLcEox59PH99XyW7kDjB72JfYDZbFFODPP35vPYQu3Hq3aJTVv6bpCyD4/+ct06+mLYDg33ZZgsTVv5RJvw8g/Kw1XQGEf73Tg3Hq6l/KZAUQfu41TQGEf5vEt4TPTVEA4WerKQoAWw1fAKs/jxi+APAIBQj3+s3b1kNoSgGIpgDB0lf/UiYogJvII4YvANtYOL6YogBu5n3M11dTFKAUN3Ut8/StaQpQipt7y+s3b83PgqkKUIoSLDEn101XgFLc8BOr/vOm/ZXI041P+1khgb/PtAU4SSmC4G8zfQFOzgMyQxkEvo6YApxbCs+WUqwN4SOFE/R9Rf5pRMZX608jTvkuEKylAERTAKIpANEUgGgKQDQFIJoCEE0BiKYARFMAoikA0RSAaApANAUgmgIQTQGIpgBEUwCiKQDRqhag1i8qwy01c2YHIJoCEE0BiFa9AJ4D2FPtfNkBiKYARNulAI5B7GGPXNkBiLZbAewC1LRXnuwARNu1AHYBatgzR3YAou1eALsAj9g7P3YAoh1SALsAWxyRm8N2ACXgHkfl5dAjkBKwxpE58QxAtMMLYBfglqPz0WQHUAKWtMhFsyOQEnCuVR6aPgMoAaW0zUE3AXzx9Opz6zFwrB4WwG7eBephMjhOL/e7mwKU0s+ksK+e7nM3A7nkSDSfnoJ/0t2ALinC+HoM/km3A7ukCOPpOfgn3Q/wkiL0b4Tgnwwz0CXK0I+RQn9uyEFfoxDHGTXwAAAAAAAAAAAAAAAAAIzqX1yWlQdTqjkYAAAAAElFTkSuQmCC',sizes:'192x192',type:'image/png'},{src:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFKElEQVR4nO3dO7IbRQAF0IYiIDEbeFVOyJw5cOKQLbBOtuCQhIDMmROqvAGckJnAqCyLkd5o1DP9uefEtl5Pz73dPXoflQIAAAAAAAAAAAAAAAAA0L3vWg+gphdPrz63HkOKTx/fT5GdoS9C4PsxaiGGG7TQ92+kMgwzUMEfzwhF6H6Agj++novQ7cAEfz49FqG7AQn+/HoqwvetB3BO+DP0dJ+7KUBPk8L+ernfzbeiXiaCdloeiZruAMJPKW1z0KwAws+5VnloUgDhZ0mLXBxeAOHnlqPz0c27QNDCoQWw+rPGkTk5rADCzz2OysshBRB+tjgiN54BiLZ7Aaz+PGLv/NgBiLZrAaz+1LBnjuwARNvtp/Cs/t/6+7cf7/4/P/36zw4jGdcePzX6Q+0X5IstgX/uNRSivl12gNTVv0bo10otQ+1dwA5QwZHBv/yaqUWoRQEe0CL418agCNtUPwIlHH96CP41CUWoeQyyA9yh5+Cf2BHu4/sAK40Q/nOjjbcVBVhh1DCNOu4jVX0GmO38P1OAZjsS1XoOsANcMVP4S5nvempRgAWzhmXW63qEAlyYPSSzX9+9FOBMSjhSrnMNBSCaAvwnbVVMu95rFKDkhiH1us/FFyA9BOnXH18AskUXIH31O0meh+gCQGwBkle9JanzEVsAKCW0AKmr3XMS5yWyAHASV4DEVe4eafMTVwA4pwBEiypA2va+VdI8RRUALikA0RSAaDEFSDrX1pAyXzEFgCUKQDQFIJoCEE0BiKYARFMAoikA0XxEUiMfXr5b9e9+/uuXnUeSTQEOtDb01/6PMtSnAAfYEvxbr6MI9SjAjmoF/9rrKsLjYh6Cj/6MrL3Cf9TXmO0zxa6JKcCRjgh/i681IwWo6MPLd00CqQTbeQZ4QE/B+/DynWeCDaJ2gFrn2lYr/XNqjSnl/F+KHWC1HgO/xPcN7qMAzxgl+Eu8Xfq8Kh83f/Li6dXnmq+3l6Xfdx056GusLcEox59PH99XyW7kDjB72JfYDZbFFODPP35vPYQu3Hq3aJTVv6bpCyD4/+ct06+mLYDg33ZZgsTVv5RJvw8g/Kw1XQGEf73Tg3Hq6l/KZAUQfu41TQGEf5vEt4TPTVEA4WerKQoAWw1fAKs/jxi+APAIBQj3+s3b1kNoSgGIpgDB0lf/UiYogJvII4YvANtYOL6YogBu5n3M11dTFKAUN3Ut8/StaQpQipt7y+s3b83PgqkKUIoSLDEn101XgFLc8BOr/vOm/ZXI041P+1khgb/PtAU4SSmC4G8zfQFOzgMyQxkEvo6YApxbCs+WUqwN4SOFE/R9Rf5pRMZX608jTvkuEKylAERTAKIpANEUgGgKQDQFIJoCEE0BiKYARFMAoikA0RSAaApANAUgmgIQTQGIpgBEUwCiKQDRqhag1i8qwy01c2YHIJoCEE0BiFa9AJ4D2FPtfNkBiKYARNulAI5B7GGPXNkBiLZbAewC1LRXnuwARNu1AHYBatgzR3YAou1eALsAj9g7P3YAoh1SALsAWxyRm8N2ACXgHkfl5dAjkBKwxpE58QxAtMMLYBfglqPz0WQHUAKWtMhFsyOQEnCuVR6aPgMoAaW0zUE3AXzx9Opz6zFwrB4WwG7eBephMjhOL/e7mwKU0s+ksK+e7nM3A7nkSDSfnoJ/0t2ALinC+HoM/km3A7ukCOPpOfgn3Q/wkiL0b4Tgnwwz0CXK0I+RQn9uyEFfoxDHGTXwAAAAAAAAAAAAAAAAAIzqX1yWlQdTqjkYAAAAAElFTkSuQmCC',sizes:'512x512',type:'image/png'}]};
+const mf={name:'날씨',short_name:'날씨',start_url:'.',display:'standalone',background_color:'#0d1b2a',theme_color:'#0d1b2a',icons:[{src:'data:image/png;base64,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',sizes:'192x192',type:'image/png'},{src:'data:image/png;base64,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',sizes:'512x512',type:'image/png'}]};
 const blob=new Blob([JSON.stringify(mf)],{type:'application/json'});
 document.getElementById('mf').href=URL.createObjectURL(blob);
 
