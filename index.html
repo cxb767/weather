@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1b2a">
+<title>날씨</title>
+<link rel="manifest" id="mf">
+<style>
+:root{
+  --bg:#050505;
+  --s1:#0c0c0c;
+  --s2:#111111;
+  --s3:#181818;
+  --border:#1e1e1e;
+  --accent:#2a2a2a;
+  --accent-dim:#1a1a1a;
+  --text:#c8c8c8;
+  --text2:#555555;
+  --text3:#333333;
+  --green:#1a5c3a;
+  --green-dot:#2d7a52;
+  --red:#7a1f1f;
+  --red-bright:#c0392b;
+  --me-bubble:#1a1f1a;
+  --me-border:#2a3a2a;
+  --you-bubble:#0f0f14;
+  --you-border:#1e1e2e;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);}
+body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-user-select:none;user-select:none;}
+
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:10;padding:32px 24px;}
+.scr.on{display:flex;}
+
+/* LOCK */
+#sl{z-index:50;gap:20px;}
+.lk-icon{font-size:44px;margin-bottom:4px;opacity:.5;}
+.lk-name{font-size:26px;font-weight:700;letter-spacing:-1px;color:var(--text2);}
+.lk-name span{color:var(--text3);}
+.lk-sub{font-size:14px;color:var(--text3);}
+.lk-blocked{font-size:13px;color:var(--red-bright);background:rgba(192,57,43,.08);border-radius:12px;padding:14px 20px;text-align:center;display:none;max-width:280px;}
+.lk-form{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:300px;}
+.lk-inp{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;color:var(--text);font-size:20px;text-align:center;letter-spacing:6px;outline:none;width:100%;transition:border-color .2s;}
+.lk-inp:focus{border-color:var(--text3);}
+.lk-err{font-size:13px;color:var(--red-bright);min-height:18px;text-align:center;}
+.lk-btn{background:var(--s3);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:15px;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:opacity .2s;}
+.lk-btn:active{opacity:.6;}
+.lk-link{font-size:13px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;}
+.lk-chg{display:none;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:300px;}
+.lk-chg-title{font-size:14px;color:var(--text3);}
+
+/* CONFIG */
+#sc{z-index:20;}
+.cfg-box{width:100%;max-width:420px;}
+.cfg-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px;color:var(--text);}
+.cfg-sub{font-size:13px;color:var(--text3);margin-bottom:28px;line-height:1.6;}
+.cfg-sub a{color:var(--text2);text-decoration:none;}
+.cfg-card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:22px;}
+.cfg-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text2);font-family:'SF Mono',monospace;font-size:12px;resize:none;outline:none;min-height:120px;transition:border-color .2s;}
+.cfg-ta:focus{border-color:var(--text3);}
+.cfg-ta::placeholder{color:var(--text3);}
+.cfg-err{font-size:13px;color:var(--red-bright);margin-top:10px;display:none;}
+
+/* SETUP */
+#ss{z-index:15;}
+.su-box{width:100%;max-width:400px;}
+.su-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px;color:var(--text);}
+.su-sub{font-size:13px;color:var(--text3);margin-bottom:28px;}
+.su-card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;}
+.f-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.f-inp{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;width:100%;transition:border-color .2s;}
+.f-inp:focus{border-color:var(--text3);}
+.f-inp::placeholder{color:var(--text3);}
+
+/* IDLE LOCK */
+#sil{z-index:40;}
+
+/* CHAT */
+#sch{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
+#sch.on{display:flex;}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;padding-top:max(14px,env(safe-area-inset-top));background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.hdr-left{display:flex;align-items:center;gap:10px;}
+.hdr-logo{font-size:16px;font-weight:800;letter-spacing:-0.5px;color:var(--text3);}
+.hdr-logo span{color:var(--text3);}
+.peer-wrap{display:flex;align-items:center;gap:7px;}
+.pdot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:all .3s;}
+.pdot.on{background:var(--green-dot);}
+.pname{font-size:13px;color:var(--text3);}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{background:transparent;border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;transition:all .2s;}
+.icon-btn:active{color:var(--text2);}
+
+/* Status strip */
+.strip{display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.strip::-webkit-scrollbar{display:none;}
+.chip{display:flex;align-items:center;gap:5px;background:var(--s1);border-radius:20px;padding:4px 10px;white-space:nowrap;flex-shrink:0;border:1px solid var(--border);}
+.chip-dot{width:5px;height:5px;border-radius:50%;background:var(--green-dot);}
+.chip-txt{font-size:11px;color:var(--text3);}
+.strip-right{margin-left:auto;flex-shrink:0;}
+.lock-sel{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--text3);font-size:11px;cursor:pointer;outline:none;}
+
+/* Idle bar */
+.idle-bar-wrap{height:1px;background:var(--border);flex-shrink:0;}
+.idle-bar{height:100%;background:var(--text3);transition:width 1s linear;width:100%;}
+
+/* Tabs */
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{flex:1;padding:13px;background:none;border:none;color:var(--text3);font-size:12px;font-weight:600;letter-spacing:1.5px;cursor:pointer;border-bottom:1px solid transparent;transition:all .2s;position:relative;}
+.tab.on{color:var(--text2);border-bottom-color:var(--text3);}
+.tab-badge{position:absolute;top:10px;right:calc(50% - 26px);background:var(--red-bright);color:#fff;border-radius:10px;padding:2px 7px;font-size:11px;min-width:18px;text-align:center;display:none;}
+
+/* Panels */
+.panel{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
+.panel.on{display:flex;}
+
+/* Messages */
+.msgs{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:3px;-webkit-overflow-scrolling:touch;}
+.msgs::-webkit-scrollbar{display:none;}
+
+.mw{display:flex;flex-direction:column;margin-bottom:2px;animation:pop .15s ease;}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.mw.me{align-items:flex-end;}
+.mw.you{align-items:flex-start;}
+
+.mbub{max-width:78%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.5;word-break:break-word;position:relative;border:1px solid transparent;}
+.mw.me .mbub{background:var(--me-bubble);border-color:var(--me-border);color:var(--text);border-bottom-right-radius:4px;}
+.mw.you .mbub{background:var(--you-bubble);border-color:var(--you-border);color:var(--text);border-bottom-left-radius:4px;}
+
+/* Long press delete highlight */
+.mbub.pressing{opacity:.5;}
+.mtime{font-size:10px;color:var(--text3);margin:2px 4px;}
+
+.sysmsg{align-self:center;font-size:11px;color:var(--text3);padding:5px 14px;background:var(--s1);border-radius:20px;margin:6px 0;border:1px solid var(--border);}
+.date-div{align-self:center;font-size:11px;color:var(--text3);padding:3px 12px;margin:10px 0;}
+
+/* Posts */
+.posts{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+.posts::-webkit-scrollbar{display:none;}
+
+.post{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;animation:pop .15s ease;transition:opacity .2s;}
+.post.me{border-left:2px solid var(--me-border);}
+.post.you{border-left:2px solid var(--you-border);}
+.post.pressing{opacity:.4;}
+.post-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.post-who{font-size:12px;font-weight:600;color:var(--text3);}
+.post-when{font-size:11px;color:var(--text3);}
+.post-body{font-size:15px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+.post-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:10px;}
+.post-hint{font-size:12px;color:var(--text3);}
+
+/* Delete confirm overlay */
+.del-confirm{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;backdrop-filter:blur(6px);}
+.del-confirm.on{display:flex;}
+.del-confirm-txt{font-size:16px;color:var(--text2);}
+.del-confirm-sub{font-size:13px;color:var(--text3);}
+.del-confirm-btns{display:flex;gap:12px;}
+.del-btn-yes{background:rgba(192,57,43,.15);color:var(--red-bright);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:12px 28px;font-size:15px;font-weight:600;cursor:pointer;}
+.del-btn-no{background:var(--s2);color:var(--text2);border:1px solid var(--border);border-radius:12px;padding:12px 28px;font-size:15px;cursor:pointer;}
+
+/* Empty */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);}
+.empty-icon{font-size:32px;opacity:.2;}
+.empty-txt{font-size:14px;}
+
+/* Input */
+.inp-wrap{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:var(--s1);border-top:1px solid var(--border);flex-shrink:0;}
+.inp-row{display:flex;gap:8px;align-items:flex-end;}
+.ta{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:11px 14px;color:var(--text);font-size:15px;resize:none;outline:none;min-height:44px;max-height:110px;line-height:1.5;transition:border-color .2s;font-family:inherit;}
+.ta:focus{border-color:var(--text3);}
+.ta::placeholder{color:var(--text3);}
+.snd{background:var(--s3);border:1px solid var(--border);border-radius:14px;width:44px;height:44px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:opacity .2s;}
+.snd:active{opacity:.6;}
+.snd.b{background:var(--s2);}
+
+/* SETTINGS SHEET */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:60;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.sheet-bg.on{display:flex;}
+.sheet{background:var(--s1);border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;padding-bottom:max(24px,env(safe-area-inset-bottom));border-top:1px solid var(--border);}
+.sheet-handle{width:36px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 22px;}
+.sheet-title{font-size:18px;font-weight:700;margin-bottom:22px;color:var(--text);}
+.s-section{margin-bottom:22px;}
+.s-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.s-inp{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;width:100%;margin-bottom:10px;transition:border-color .2s;font-family:inherit;}
+.s-inp:focus{border-color:var(--text3);}
+.s-inp::placeholder{color:var(--text3);}
+.s-btn{width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:4px;}
+.s-btn:active{opacity:.7;}
+.s-btn-a{background:var(--s3);color:var(--text);border:1px solid var(--border);}
+.s-btn-b{background:var(--s2);color:var(--text2);border:1px solid var(--border);}
+.s-btn-r{background:rgba(192,57,43,.08);color:var(--red-bright);border:1px solid rgba(192,57,43,.2);}
+.s-err{font-size:12px;color:var(--red-bright);margin-top:6px;display:none;}
+.s-divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+.s-note{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:10px;}
+.s-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.s-info-label{font-size:12px;color:var(--text3);}
+.s-info-val{font-size:14px;color:var(--text);font-weight:500;}
+
+/* Toast */
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s3);border-radius:10px;padding:10px 18px;font-size:13px;color:var(--text2);opacity:0;transition:all .25s;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Cap overlay */
+#cap{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#cap .cap-t{font-size:14px;color:var(--text3);}
+
+.btn-main{background:var(--s3);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:opacity .2s;margin-top:4px;}
+.btn-main:active{opacity:.7;}
+.btn-sub{background:var(--s2);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:13px;font-size:14px;cursor:pointer;width:100%;margin-top:8px;transition:opacity .2s;}
+.btn-sub:active{opacity:.7;}
+
+/* Long press hint */
+.lp-hint{font-size:10px;color:var(--text3);text-align:center;padding:4px 0 2px;opacity:.6;}
+</style>
+</head>
+<body>
+
+<div id="cap" style="display:none"><div style="font-size:40px;opacity:.3">🚫</div><div class="cap-t">화면 캡처 감지됨</div></div>
+
+<!-- DELETE CONFIRM -->
+<div class="del-confirm" id="del-confirm">
+  <div class="del-confirm-txt">메시지를 삭제할까요?</div>
+  <div class="del-confirm-sub">양쪽 모두에서 삭제됩니다</div>
+  <div class="del-confirm-btns">
+    <button class="del-btn-yes" onclick="confirmDelete()">삭제</button>
+    <button class="del-btn-no" onclick="cancelDelete()">취소</button>
+  </div>
+</div>
+
+<!-- 비상 삭제 오버레이 -->
+<div class="del-confirm" id="emergency-confirm">
+  <div style="font-size:28px;margin-bottom:8px">🚨</div>
+  <div class="del-confirm-txt">방 전체 삭제</div>
+  <div class="del-confirm-sub" style="text-align:center;line-height:1.7">CHAT + BOARD 모든 내용이<br>양쪽에서 즉시 삭제됩니다</div>
+  <div class="del-confirm-btns">
+    <button class="del-btn-yes" onclick="confirmEmergency()">전체 삭제</button>
+    <button class="del-btn-no" onclick="cancelEmergency()">취소</button>
+  </div>
+</div>
+
+<!-- 날씨 위장 화면 -->
+<div id="weather-screen" style="display:flex;position:fixed;inset:0;background:linear-gradient(180deg,#0d1b2a 0%,#1a3a5c 40%,#0d2235 100%);z-index:5;flex-direction:column;overflow:hidden;">
+  <!-- 상단 바 -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:max(20px,env(safe-area-inset-top)) 20px 10px;flex-shrink:0;">
+    <div style="font-size:13px;color:rgba(255,255,255,0.6)" id="w-time"></div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.6)">날씨</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.6)">🔍</div>
+  </div>
+
+  <!-- 현재 위치 날씨 (메인) -->
+  <div style="padding:10px 24px 20px;flex-shrink:0;">
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:4px;" id="w-loc">📍 내 위치</div>
+    <div style="font-size:72px;font-weight:200;color:#fff;line-height:1;" id="w-temp">--°</div>
+    <div style="font-size:16px;color:rgba(255,255,255,0.8);margin:4px 0;" id="w-desc">불러오는 중...</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5);" id="w-hl">최고 --° 최저 --°</div>
+  </div>
+
+  <!-- 시간별 예보 -->
+  <div style="padding:0 16px;margin-bottom:16px;flex-shrink:0;">
+    <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);">
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;letter-spacing:1px;">시간별 예보</div>
+      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+    </div>
+  </div>
+
+  <!-- 도시 목록 (길게 누르면 진입) -->
+  <div style="flex:1;overflow-y:auto;padding:0 16px;padding-bottom:max(16px,env(safe-area-inset-bottom));" id="w-cities">
+    <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">도시 목록</div>
+  </div>
+</div>
+
+<!-- APP LOCK -->
+<div class="scr" id="sl">
+  <div class="lk-icon">🔐</div>
+  <div class="lk-name">Secure<span>Link</span></div>
+  <div class="lk-sub" id="al-sub"> </div>
+  <div class="lk-blocked" id="al-blk"></div>
+  <div class="lk-form" id="al-form">
+    <input type="password" class="lk-inp" id="al-inp" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')aUnlock()">
+    <div class="lk-err" id="al-err"></div>
+    <button class="lk-btn" onclick="aUnlock()">확인</button>
+    <button class="lk-link" onclick="showAChg()">비밀번호 변경</button>
+    <button class="lk-link" style="margin-top:4px" onclick="hardReset()">앱 초기화</button>
+  </div>
+  <div class="lk-chg" id="al-chg">
+    <div class="lk-chg-title">비밀번호 변경</div>
+    <input type="password" class="lk-inp" id="al-c0" placeholder="현재 비밀번호">
+    <input type="password" class="lk-inp" id="al-c1" placeholder="새 비밀번호">
+    <input type="password" class="lk-inp" id="al-c2" placeholder="새 비밀번호 확인">
+    <div class="lk-err" id="al-cerr"></div>
+    <button class="lk-btn" onclick="saveAChg()">저장</button>
+    <button class="lk-link" onclick="hideAChg()">취소</button>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="scr" id="sc">
+  <div class="cfg-box">
+    <div class="cfg-title">Firebase 연결</div>
+    <div class="cfg-sub">
+      <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>에서 프로젝트 생성 후<br>
+      Firestore 활성화 → 웹앱 추가 → Config 복사
+    </div>
+    <div class="cfg-card">
+      <textarea class="cfg-ta" id="cfg-in" placeholder='{"apiKey":"...","projectId":"...",...}'></textarea>
+      <div class="cfg-err" id="cfg-err"></div>
+      <button class="btn-main" style="margin-top:14px" onclick="saveCfg()">연결</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="scr" id="ss">
+  <div class="su-box">
+    <div class="su-title">초기 설정</div>
+    <div class="su-sub">한 번만 설정하면 돼요</div>
+    <div class="su-card">
+      <div>
+        <div class="f-label">이름</div>
+        <input class="f-inp" type="text" id="su-n" placeholder="표시될 이름" maxlength="20">
+      </div>
+      <div>
+        <div class="f-label">방 코드</div>
+        <input class="f-inp" type="text" id="su-c" placeholder="상대방과 동일하게" maxlength="20" style="text-transform:uppercase;letter-spacing:2px">
+      </div>
+      <div>
+        <div class="f-label">암호키</div>
+        <input class="f-inp" type="password" id="su-s" placeholder="상대방과 동일하게" maxlength="64">
+      </div>
+      <button class="btn-main" onclick="saveSetup()">시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDLE LOCK -->
+<div class="scr" id="sil">
+  <div class="lk-icon">🔒</div>
+  <div class="lk-name" style="color:var(--text3)">잠금</div>
+  <div class="lk-blocked" id="il-blk"></div>
+  <div class="lk-form" id="il-form">
+    <input type="password" class="lk-inp" id="il-inp" placeholder="••••••" onkeydown="if(event.key==='Enter')iUnlock()">
+    <div class="lk-err" id="il-err"></div>
+    <button class="lk-btn" onclick="iUnlock()">해제</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="sch">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">S<span>L</span></div>
+      <div class="peer-wrap">
+        <div class="pdot" id="pdot"></div>
+        <div class="pname" id="pname">연결 중...</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button class="icon-btn" id="emg-btn" onclick="openEmergency()" title="전체삭제" style="color:#7a2020">🗑️</button>
+      <button class="icon-btn" onclick="openSheet()">⚙️</button>
+    </div>
+  </div>
+
+  <div class="idle-bar-wrap"><div class="idle-bar" id="idle-bar"></div></div>
+
+  <div class="tabs">
+    <button class="tab on" id="t-chat" onclick="toPanel('chat')">CHAT<span class="tab-badge" id="b-chat"></span></button>
+    <button class="tab" id="t-board" onclick="toPanel('board')">BOARD<span class="tab-badge" id="b-board"></span></button>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="panel on" id="p-chat">
+    <div class="msgs" id="msgs">
+      <div class="empty" id="e-chat"><div class="empty-icon">💬</div><div class="empty-txt">메시지가 없어요</div></div>
+    </div>
+    <div class="lp-hint">길게 누르면 삭제</div>
+    <div class="inp-wrap">
+      <div class="inp-row">
+        <textarea class="ta" id="cta" placeholder="메시지" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+          oninput="aH(this);resetIdle()"></textarea>
+        <button class="snd" onclick="sendMsg()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOARD PANEL -->
+  <div class="panel" id="p-board">
+    <div class="posts" id="posts">
+      <div class="empty" id="e-board"><div class="empty-icon">📋</div><div class="empty-txt">게시물이 없어요</div></div>
+    </div>
+    <div class="lp-hint">길게 누르면 삭제</div>
+    <div class="inp-wrap">
+      <div class="inp-row">
+        <textarea class="ta" id="bta" placeholder="게시물" rows="1" oninput="aH(this);resetIdle()"></textarea>
+        <button class="snd b" onclick="sendPost()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-bg" id="sheet-bg" onclick="if(event.target===this)cancelSheet()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+
+    <!-- 비번 확인 레이어 -->
+    <div id="sheet-auth">
+      <div class="sheet-title">설정 잠금</div>
+      <div class="s-note" style="margin-bottom:14px">비밀번호를 입력하세요</div>
+      <input class="s-inp" type="password" id="s-auth-inp" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSheet()">
+      <div class="s-err" id="s-auth-err" style="margin-top:6px"></div>
+      <button class="s-btn s-btn-a" style="margin-top:10px" onclick="authSheet()">확인</button>
+    </div>
+
+    <!-- 설정 본문 -->
+    <div id="sheet-body" style="display:none">
+      <div class="sheet-title">설정</div>
+
+      <div class="s-section">
+        <div class="s-label">연결 정보</div>
+        <div class="s-info-row"><span class="s-info-label">이름</span><span class="s-info-val" id="si-name"></span></div>
+        <div class="s-info-row"><span class="s-info-label">방 코드</span><span class="s-info-val" id="si-code"></span></div>
+        <div class="s-note" style="margin-top:8px">변경하면 상대방도 동일하게 바꿔야 해요</div>
+        <input class="s-inp" type="text" id="s-name" placeholder="새 이름" maxlength="20" style="margin-top:8px">
+        <input class="s-inp" type="text" id="s-code" placeholder="새 방 코드" maxlength="20" style="text-transform:uppercase;letter-spacing:2px">
+        <input class="s-inp" type="password" id="s-sec" placeholder="암호키 (변경 시만)" maxlength="64" autocomplete="new-password">
+        <div class="s-err" id="s-rm-err"></div>
+        <button class="s-btn s-btn-b" onclick="chgRoom()">저장</button>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-label">앱 비밀번호 변경</div>
+        <input class="s-inp" type="password" id="s-c1" placeholder="새 비밀번호" autocomplete="new-password">
+        <input class="s-inp" type="password" id="s-c2" placeholder="새 비밀번호 확인" autocomplete="new-password">
+        <div class="s-err" id="s-pw-err"></div>
+        <button class="s-btn s-btn-a" onclick="chgPw()">변경</button>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-label">자리비움 잠금</div>
+        <select class="s-inp" id="idle-sel" onchange="idleLimit=+this.value;resetIdle()" style="cursor:pointer">
+          <option value="60">1분</option>
+          <option value="180" selected>3분</option>
+          <option value="300">5분</option>
+          <option value="600">10분</option>
+          <option value="0">끄기</option>
+        </select>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-label">홈화면 설치</div>
+        <button class="s-btn s-btn-b" id="s-install" onclick="doInstall()" style="display:none">홈화면에 추가</button>
+        <div class="s-note" id="s-install-guide"></div>
+      </div>
+
+      <div class="s-divider"></div>
+      <div class="s-section">
+        <div class="s-label">데이터 삭제</div>
+        <div class="s-note">방의 모든 메시지를 양쪽에서 삭제해요</div>
+        <button class="s-btn s-btn-r" style="margin-bottom:10px" onclick="closeSheet();openEmergency()">방 전체 삭제</button>
+      </div>
+      <div class="s-divider"></div>
+      <button class="s-btn s-btn-r" onclick="resetAll()">앱 초기화</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let db=null,myName='',myId='',roomId='',secretKey='';
+let curPanel='chat',chatUnread=0,boardUnread=0;
+let unsubM=null,unsubP=null,unsubPr=null,presIv=null;
+let ilFail=0,ilBlk=0,idleLimit=180,idleSecs=0,idleIv=null,inRoom=false,idleLocked=false;
+let deferredPrompt=null;
+let pendingDeleteId=null,pendingDeleteType=null;
+const K={PW:'sl_pw',CFG:'sl_cfg',SU:'sl_su',AF:'sl_af',AB:'sl_ab'};
+
+// ============ 날씨 위장 ============
+const CITIES = [
+  {name:'서울',lat:37.5665,lon:126.9780},
+  {name:'부산',lat:35.1796,lon:129.0756},
+  {name:'인천',lat:37.4563,lon:126.7052},
+  {name:'대구',lat:35.8714,lon:128.6014},
+  {name:'광주',lat:35.1595,lon:126.8526},
+  {name:'대전',lat:36.3504,lon:127.3845},
+  {name:'울산',lat:35.5384,lon:129.3114},
+  {name:'제주',lat:33.4996,lon:126.5312},
+];
+
+const WX_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
+const WX_DESC={0:'맑음',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
+
+let weatherLoaded=false;
+
+async function fetchWeather(lat,lon){
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,apparent_temperature&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&timezone=Asia%2FSeoul&forecast_days=1`);
+    return await r.json();
+  }catch{return null;}
+}
+
+async function loadMainWeather(){
+  let lat=37.5665,lon=126.9780,locName='서울';
+  try{
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:4000}));
+    lat=pos.coords.latitude;lon=pos.coords.longitude;
+    // 역지오코딩
+    try{
+      const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
+      const gd=await gr.json();
+      locName=gd.address?.city||gd.address?.town||gd.address?.county||'내 위치';
+    }catch{}
+  }catch{}
+  const d=await fetchWeather(lat,lon);
+  if(!d)return;
+  const c=d.current;
+  const daily=d.daily;
+  const code=c.weather_code;
+  document.getElementById('w-loc').textContent='📍 '+locName;
+  document.getElementById('w-temp').textContent=Math.round(c.temperature_2m)+'°';
+  document.getElementById('w-desc').textContent=(WX_ICON[code]||'🌡️')+' '+(WX_DESC[code]||'');
+  document.getElementById('w-hl').textContent=`최고 ${Math.round(daily.temperature_2m_max[0])}° 최저 ${Math.round(daily.temperature_2m_min[0])}°`;
+  // 시간별
+  const now=new Date().getHours();
+  const hourly=d.hourly;
+  const hw=document.getElementById('w-hourly');hw.innerHTML='';
+  for(let i=now;i<Math.min(now+8,24);i++){
+    const ic=WX_ICON[hourly.weather_code[i]]||'🌡️';
+    const tmp=Math.round(hourly.temperature_2m[i]);
+    const label=i===now?'지금':`${i}시`;
+    hw.innerHTML+=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:40px"><div style="font-size:11px;color:rgba(255,255,255,0.5)">${label}</div><div style="font-size:16px">${ic}</div><div style="font-size:12px;color:#fff;font-weight:600">${tmp}°</div></div>`;
+  }
+}
+
+async function loadCityWeather(){
+  const container=document.getElementById('w-cities');
+  // 기존 도시 카드 지우고 로딩 표시
+  const oldCards=container.querySelectorAll('.city-card');
+  oldCards.forEach(c=>c.remove());
+
+  for(const city of CITIES){
+    const card=document.createElement('div');
+    card.className='city-card';
+    card.style.cssText='background:rgba(255,255,255,0.07);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);user-select:none;-webkit-user-select:none;';
+    card.innerHTML=`<div><div style="font-size:16px;font-weight:600;color:#fff">${city.name}</div><div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">불러오는 중...</div></div><div style="font-size:28px;font-weight:200;color:#fff">--°</div>`;
+
+    // 길게 누르면 채팅 진입
+    let pressTimer=null;
+    const startPress=()=>{
+      card.style.opacity='0.5';
+      pressTimer=setTimeout(()=>{
+        card.style.opacity='1';
+        hideWeather();
+      },800);
+    };
+    const endPress=()=>{card.style.opacity='1';clearTimeout(pressTimer);};
+    card.addEventListener('touchstart',startPress,{passive:true});
+    card.addEventListener('touchend',endPress);
+    card.addEventListener('touchcancel',endPress);
+    card.addEventListener('mousedown',startPress);
+    card.addEventListener('mouseup',endPress);
+    card.addEventListener('mouseleave',endPress);
+
+    container.appendChild(card);
+
+    // 날씨 비동기 로드
+    fetchWeather(city.lat,city.lon).then(d=>{
+      if(!d)return;
+      const c=d.current;
+      const code=c.weather_code;
+      const desc=card.querySelector('div > div:nth-child(2)');
+      const temp=card.querySelector('div:last-child');
+      if(desc)desc.textContent=(WX_ICON[code]||'')+' '+(WX_DESC[code]||'');
+      if(temp)temp.textContent=Math.round(c.temperature_2m)+'°';
+    });
+  }
+}
+
+function updateTime(){
+  const now=new Date();
+  const t=now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const el=document.getElementById('w-time');
+  if(el)el.textContent=t;
+}
+
+async function showWeather(){
+  const ws=document.getElementById('weather-screen');
+  ws.style.display='flex';
+  updateTime();
+  setInterval(updateTime,10000);
+  if(!weatherLoaded){
+    weatherLoaded=true;
+    loadMainWeather();
+    loadCityWeather();
+  }
+}
+
+function hideWeather(){
+  document.getElementById('weather-screen').style.display='none';
+  document.getElementById('sl').classList.add('on');
+  setTimeout(()=>document.getElementById('al-inp').focus(),300);
+}
+
+// PWA
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('s-install').style.display='block';});
+async function doInstall(){
+  if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;if(r.outcome==='accepted'){toast('설치됨');deferredPrompt=null;}}
+  else{const g=document.getElementById('s-install-guide');const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);g.textContent=ios?'Safari → 공유버튼 → 홈 화면에 추가':'Chrome → ⋮ → 앱 설치';}
+}
+
+// CRYPTO
+async function dK(s){const e=new TextEncoder();const km=await crypto.subtle.importKey('raw',e.encode(s),{name:'PBKDF2'},false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:e.encode('sl4'),iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function ENC(t,s){const k=await dK(s),iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(t));const b=new Uint8Array(12+ct.byteLength);b.set(iv);b.set(new Uint8Array(ct),12);return btoa(String.fromCharCode(...b));}
+async function DEC(b64,s){try{const k=await dK(s),b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));const r=await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},k,b.slice(12));return new TextDecoder().decode(r);}catch{return '[복호화 실패]';}}
+async function hPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw+'securelink_fixed_salt'));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+
+// CAPTURE
+document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const o=document.getElementById('cap');o.style.display='flex';setTimeout(()=>o.style.display='none',2500);}});
+document.addEventListener('visibilitychange',()=>{
+  if(!inRoom)return;
+  const blur=document.hidden?'blur(24px)':'';
+  document.getElementById('msgs').style.filter=blur;
+  document.getElementById('posts').style.filter=blur;
+  if(!document.hidden&&!unsubM)reconnect();
+});
+function reconnect(){if(!db||!roomId)return;if(unsubM){unsubM();unsubM=null;}if(unsubP){unsubP();unsubP=null;}if(unsubPr){unsubPr();unsubPr=null;}listenM();listenP();listenPr();}
+
+// DELETE CONFIRM
+function showDeleteConfirm(id, type){
+  pendingDeleteId=id;pendingDeleteType=type;
+  document.getElementById('del-confirm').classList.add('on');
+}
+function cancelDelete(){
+  pendingDeleteId=null;pendingDeleteType=null;
+  document.getElementById('del-confirm').classList.remove('on');
+}
+
+// 비상삭제
+function openEmergency(){
+  document.getElementById('emergency-confirm').classList.add('on');
+}
+function cancelEmergency(){
+  document.getElementById('emergency-confirm').classList.remove('on');
+}
+async function confirmEmergency(){
+  cancelEmergency();
+  toast('삭제 중...');
+  try{
+    // CHAT 삭제
+    const msgs=await db.collection('rooms').doc(roomId).collection('messages').get();
+    const batch1=db.batch();
+    msgs.docs.forEach(d=>batch1.delete(d.ref));
+    await batch1.commit();
+    // BOARD 삭제
+    const posts=await db.collection('rooms').doc(roomId).collection('posts').get();
+    const batch2=db.batch();
+    posts.docs.forEach(d=>batch2.delete(d.ref));
+    await batch2.commit();
+    toast('전체 삭제 완료');
+  }catch(e){toast('삭제 실패');}
+}
+async function confirmDelete(){
+  if(!pendingDeleteId){cancelDelete();return;}
+  try{
+    if(pendingDeleteType==='msg'){
+      await db.collection('rooms').doc(roomId).collection('messages').doc(pendingDeleteId).delete();
+    } else {
+      await db.collection('rooms').doc(roomId).collection('posts').doc(pendingDeleteId).delete();
+    }
+    toast('삭제됨');
+  }catch(e){toast('삭제 실패');}
+  cancelDelete();
+}
+
+// Long press helper
+function addLongPress(el, cb){
+  let t=null;
+  const start=()=>{el.classList.add('pressing');t=setTimeout(()=>{el.classList.remove('pressing');cb();},600);};
+  const end=()=>{clearTimeout(t);el.classList.remove('pressing');};
+  el.addEventListener('touchstart',start,{passive:true});
+  el.addEventListener('touchend',end);
+  el.addEventListener('touchcancel',end);
+  el.addEventListener('mousedown',start);
+  el.addEventListener('mouseup',end);
+  el.addEventListener('mouseleave',end);
+}
+
+// APP LOCK
+async function initLock(){
+  const pwVer=localStorage.getItem('sl_pw_ver');
+  if(pwVer!=='v4'){localStorage.removeItem(K.PW);localStorage.removeItem(K.AF);localStorage.removeItem(K.AB);localStorage.setItem('sl_pw_ver','v4');}
+  const stored=localStorage.getItem(K.PW);
+  const blk=+localStorage.getItem(K.AB)||0;
+  if(!stored){document.getElementById('al-sub').textContent='비밀번호를 설정하세요';document.getElementById('al-inp').placeholder='새 비밀번호';document.getElementById('al-inp').autocomplete='new-password';}
+  else if(Date.now()<blk){document.getElementById('al-form').style.display='none';const b=document.getElementById('al-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{b.style.display='none';document.getElementById('al-form').style.display='flex';},blk-Date.now());}
+  else{document.getElementById('al-sub').textContent='비밀번호를 입력하세요';}
+}
+async function aUnlock(){
+  if(Date.now()<(+localStorage.getItem(K.AB)||0))return;
+  const pw=document.getElementById('al-inp').value;if(!pw)return;
+  const stored=localStorage.getItem(K.PW);
+  if(!stored){if(pw.length<4){document.getElementById('al-err').textContent='4자 이상';return;}localStorage.setItem(K.PW,await hPw(pw));document.getElementById('al-inp').value='';afterUnlock();return;}
+  if(await hPw(pw)===stored){localStorage.setItem(K.AF,'0');document.getElementById('al-inp').value='';document.getElementById('al-err').textContent='';afterUnlock();}
+  else{let f=(+localStorage.getItem(K.AF)||0)+1;localStorage.setItem(K.AF,f);if(f>=5){const u=Date.now()+5*60*1000;localStorage.setItem(K.AB,u);localStorage.setItem(K.AF,'0');document.getElementById('al-form').style.display='none';const b=document.getElementById('al-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{b.style.display='none';document.getElementById('al-form').style.display='flex';document.getElementById('al-err').textContent='';},5*60*1000);}else{document.getElementById('al-err').textContent=`틀렸어요 (${f}/5)`;document.getElementById('al-inp').value='';}}
+}
+async function afterUnlock(){
+  document.getElementById('sl').classList.remove('on');
+  const cfg=localStorage.getItem(K.CFG);
+  if(!cfg){document.getElementById('sc').classList.add('on');return;}
+  try{if(!db){firebase.initializeApp(JSON.parse(cfg));db=firebase.firestore();}const su=localStorage.getItem(K.SU);if(!su){document.getElementById('ss').classList.add('on');return;}const s=JSON.parse(su);myName=s.name;roomId=s.code.toUpperCase();secretKey=s.secret;myId='u_'+crypto.randomUUID().substring(0,8);await enterRoom();}
+  catch(e){console.error(e);document.getElementById('sc').classList.add('on');}
+}
+function showAChg(){document.getElementById('al-form').style.display='none';document.getElementById('al-chg').style.display='flex';}
+function hideAChg(){document.getElementById('al-chg').style.display='none';document.getElementById('al-form').style.display='flex';}
+async function saveAChg(){
+  const c=document.getElementById('al-c0').value,n1=document.getElementById('al-c1').value,n2=document.getElementById('al-c2').value,e=document.getElementById('al-cerr');
+  const stored=localStorage.getItem(K.PW);
+  if(stored&&await hPw(c)!==stored){e.textContent='현재 비밀번호 틀림';return;}
+  if(n1.length<4){e.textContent='4자 이상';return;}if(n1!==n2){e.textContent='비밀번호 불일치';return;}
+  localStorage.setItem(K.PW,await hPw(n1));localStorage.setItem('sl_pw_ver','v4');[document.getElementById('al-c0'),document.getElementById('al-c1'),document.getElementById('al-c2')].forEach(el=>el.value='');
+  hideAChg();toast('변경됨');afterUnlock();
+}
+function hardReset(){if(!confirm('모든 설정이 삭제돼요. 초기화할까요?'))return;localStorage.clear();localStorage.setItem('sl_pw_ver','v4');location.reload();}
+
+// CONFIG
+function saveCfg(){
+  const raw=document.getElementById('cfg-in').value.trim(),e=document.getElementById('cfg-err');
+  try{const cfg=JSON.parse(raw);if(!cfg.apiKey||!cfg.projectId)throw new Error('필수 항목 누락');if(!db){firebase.initializeApp(cfg);db=firebase.firestore();}localStorage.setItem(K.CFG,raw);document.getElementById('sc').classList.remove('on');const su=localStorage.getItem(K.SU);if(!su)document.getElementById('ss').classList.add('on');else afterUnlock();toast('연결됨');}
+  catch(err){e.textContent=err.message;e.style.display='block';}
+}
+
+// SETUP
+function saveSetup(){
+  const n=document.getElementById('su-n').value.trim(),c=document.getElementById('su-c').value.trim().toUpperCase(),s=document.getElementById('su-s').value.trim();
+  if(!n||!c||c.length<2||s.length<4){toast('모두 입력해주세요');return;}
+  localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:s}));
+  myName=n;roomId=c;secretKey=s;myId='u_'+crypto.randomUUID().substring(0,8);
+  document.getElementById('ss').classList.remove('on');enterRoom();
+}
+
+// IDLE
+function resetIdle(){if(!inRoom||idleLimit===0)return;idleSecs=0;const f=document.getElementById('idle-bar');f.style.width='100%';f.className='idle-bar';}
+function startIdle(){
+  ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
+  if(idleIv)clearInterval(idleIv);
+  idleIv=setInterval(()=>{
+    if(!inRoom||idleLocked||idleLimit===0)return;
+    idleSecs++;
+    const pct=Math.max(0,100-idleSecs/idleLimit*100);
+    const f=document.getElementById('idle-bar');f.style.width=pct+'%';
+    if(idleSecs>=idleLimit)iLock();
+  },1000);
+}
+function iLock(){if(idleLocked||!inRoom)return;idleLocked=true;document.getElementById('sil').classList.add('on');document.getElementById('il-inp').value='';document.getElementById('il-err').textContent='';toast('잠금됨');}
+function iUnlock(){
+  if(Date.now()<ilBlk)return;
+  const v=document.getElementById('il-inp').value;
+  if(v===secretKey){idleLocked=false;ilFail=0;document.getElementById('sil').classList.remove('on');resetIdle();toast('해제됨');}
+  else{ilFail++;if(ilFail>=5){ilBlk=Date.now()+5*60*1000;document.getElementById('il-form').style.display='none';const b=document.getElementById('il-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{ilFail=0;ilBlk=0;document.getElementById('il-form').style.display='flex';b.style.display='none';},5*60*1000);}else{document.getElementById('il-err').textContent=`잘못된 암호키 (${ilFail}/5)`;document.getElementById('il-inp').value='';}}
+}
+
+// ROOM
+async function enterRoom(){
+  try{
+    const doc=await db.collection('rooms').doc(roomId).get();
+    if(!doc.exists)await db.collection('rooms').doc(roomId).set({created:firebase.firestore.FieldValue.serverTimestamp()});
+    const snap=await db.collection('rooms').doc(roomId).collection('presence').get();
+    const now=Date.now();
+    await Promise.all(snap.docs.filter(d=>now-(d.data().ts?.toMillis()||0)>30000).map(d=>d.ref.delete()));
+    const fresh=await db.collection('rooms').doc(roomId).collection('presence').get();
+    if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
+  }catch(e){console.error(e);}
+  document.getElementById('sch').classList.add('on');
+  inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
+}
+
+// PRESENCE
+function startPres(){
+  if(presIv)clearInterval(presIv);
+  const ref=db.collection('rooms').doc(roomId).collection('presence').doc(myId);
+  const up=()=>ref.set({name:myName,ts:firebase.firestore.FieldValue.serverTimestamp()});
+  up();presIv=setInterval(up,5000);
+  window.addEventListener('beforeunload',()=>ref.delete());
+}
+function listenPr(){
+  if(unsubPr)unsubPr();
+  unsubPr=db.collection('rooms').doc(roomId).collection('presence').onSnapshot(snap=>{
+    const others=snap.docs.filter(d=>d.id!==myId);
+    const on=others.length>0;
+    document.getElementById('pdot').className='pdot'+(on?' on':'');
+    document.getElementById('pname').textContent=on?(others[0].data().name||'상대방'):'';
+  });
+}
+
+// MESSAGES
+async function sendMsg(){
+  const ta=document.getElementById('cta'),t=ta.value.trim();if(!t)return;
+  ta.value='';aH(ta);resetIdle();
+  const enc=await ENC(t,secretKey);
+  await db.collection('rooms').doc(roomId).collection('messages').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp()});
+}
+function listenM(){
+  if(unsubM)unsubM();
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','asc').onSnapshot(async snap=>{
+    for(const ch of snap.docChanges()){
+      if(ch.type==='added'){
+        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
+        const d=ch.doc.data(),isMe=d.senderId===myId;
+        const txt=await DEC(d.enc,secretKey);
+        const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
+        document.getElementById('e-chat').style.display='none';
+        const w=document.createElement('div');w.className='mw '+(isMe?'me':'you');w.setAttribute('data-m',id);
+        const b=document.createElement('div');b.className='mbub';b.textContent=txt;
+        // 모든 메시지 길게 누르면 삭제
+        addLongPress(b,()=>showDeleteConfirm(id,'msg'));
+        const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
+        w.appendChild(b);w.appendChild(tm);
+        document.getElementById('msgs').appendChild(w);
+        if(!isMe&&curPanel!=='chat'){chatUnread++;const bk=document.getElementById('b-chat');bk.textContent=chatUnread;bk.style.display='block';}
+      }
+      if(ch.type==='removed'){const el=document.querySelector(`[data-m="${ch.doc.id}"]`);if(el)el.remove();}
+    }
+    document.getElementById('msgs').scrollTop=99999;
+  });
+}
+
+// POSTS
+async function sendPost(){
+  const ta=document.getElementById('bta'),t=ta.value.trim();if(!t)return;
+  ta.value='';aH(ta);resetIdle();
+  const enc=await ENC(t,secretKey);
+  await db.collection('rooms').doc(roomId).collection('posts').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp()});
+}
+function mkPost(d,id,isMe,txt,ts){
+  const card=document.createElement('div');card.className='post '+(isMe?'me':'you');card.id='post-'+id;
+  const top=document.createElement('div');top.className='post-top';
+  const who=document.createElement('div');who.className='post-who';who.textContent=isMe?'나':d.senderName;
+  const when=document.createElement('div');when.className='post-when';when.textContent=fTime(ts);
+  top.appendChild(who);top.appendChild(when);
+  const body=document.createElement('div');body.className='post-body';body.innerHTML=esc(txt);
+  const foot=document.createElement('div');foot.className='post-foot';
+  // 모든 게시물 길게 누르면 삭제
+  addLongPress(card,()=>showDeleteConfirm(id,'post'));
+  foot.appendChild(document.createElement('div'));
+  card.appendChild(top);card.appendChild(body);card.appendChild(foot);return card;
+}
+function listenP(){
+  if(unsubP)unsubP();
+  unsubP=db.collection('rooms').doc(roomId).collection('posts').orderBy('ts','asc').onSnapshot(async snap=>{
+    for(const ch of snap.docChanges()){
+      if(ch.type==='added'){if(document.getElementById('post-'+ch.doc.id))continue;const d=ch.doc.data(),id=ch.doc.id,isMe=d.senderId===myId;const txt=await DEC(d.enc,secretKey);const ts=d.ts?new Date(d.ts.seconds*1000):new Date();document.getElementById('e-board').style.display='none';document.getElementById('posts').appendChild(mkPost(d,id,isMe,txt,ts));if(!isMe&&curPanel!=='board'){boardUnread++;const b=document.getElementById('b-board');b.textContent=boardUnread;b.style.display='block';}}
+      if(ch.type==='removed'){const el=document.getElementById('post-'+ch.doc.id);if(el)el.remove();if(!document.querySelector('.post'))document.getElementById('e-board').style.display='flex';}
+    }
+    document.getElementById('posts').scrollTop=99999;
+  });
+}
+
+// UI
+function toPanel(p){
+  curPanel=p;
+  document.getElementById('p-chat').className='panel'+(p==='chat'?' on':'');
+  document.getElementById('p-board').className='panel'+(p==='board'?' on':'');
+  document.getElementById('t-chat').className='tab'+(p==='chat'?' on':'');
+  document.getElementById('t-board').className='tab'+(p==='board'?' on':'');
+  if(p==='chat'){chatUnread=0;document.getElementById('b-chat').style.display='none';document.getElementById('msgs').scrollTop=99999;}
+  if(p==='board'){boardUnread=0;document.getElementById('b-board').style.display='none';document.getElementById('posts').scrollTop=99999;}
+  resetIdle();
+}
+
+// SETTINGS
+function openSheet(){
+  // 비번 확인 레이어부터 시작
+  document.getElementById('sheet-auth').style.display='block';
+  document.getElementById('sheet-body').style.display='none';
+  const ai=document.getElementById('s-auth-inp');ai.value='';
+  document.getElementById('s-auth-err').style.display='none';
+  document.getElementById('sheet-bg').classList.add('on');
+  setTimeout(()=>ai.focus(),300);
+}
+async function authSheet(){
+  const pw=document.getElementById('s-auth-inp').value;
+  const stored=localStorage.getItem(K.PW);
+  const e=document.getElementById('s-auth-err');
+  if(!pw){e.textContent='비밀번호를 입력하세요';e.style.display='block';return;}
+  if(stored&&await hPw(pw)!==stored){e.textContent='비밀번호가 틀렸어요';e.style.display='block';document.getElementById('s-auth-inp').value='';return;}
+  // 인증 성공 → 설정 본문 표시
+  document.getElementById('sheet-auth').style.display='none';
+  document.getElementById('sheet-body').style.display='block';
+  const s=JSON.parse(localStorage.getItem(K.SU)||'{}');
+  document.getElementById('si-name').textContent=s.name||'-';
+  document.getElementById('si-code').textContent=s.code||'-';
+  ['s-name','s-code','s-c1','s-c2','s-sec'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['s-pw-err','s-rm-err'].forEach(id=>{const el=document.getElementById(id);el.style.display='none';});
+  const idleSel=document.getElementById('idle-sel');if(idleSel)idleSel.value=String(idleLimit);
+  if(deferredPrompt)document.getElementById('s-install').style.display='block';
+  else{const g=document.getElementById('s-install-guide');const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);g.textContent=ios?'Safari → 공유버튼 → 홈 화면에 추가':'Chrome → ⋮ → 앱 설치';}
+}
+function cancelSheet(){document.getElementById('sheet-bg').classList.remove('on');}
+function closeSheet(){document.getElementById('sheet-bg').classList.remove('on');}
+async function chgPw(){
+  const n1=document.getElementById('s-c1').value,n2=document.getElementById('s-c2').value,e=document.getElementById('s-pw-err');
+  if(n1.length<4){e.textContent='4자 이상';e.style.display='block';return;}
+  if(n1!==n2){e.textContent='비밀번호 불일치';e.style.display='block';return;}
+  localStorage.setItem(K.PW,await hPw(n1));localStorage.setItem('sl_pw_ver','v4');
+  [document.getElementById('s-c1'),document.getElementById('s-c2')].forEach(el=>el.value='');
+  e.style.display='none';closeSheet();toast('변경됨');
+}
+async function chgRoom(){
+  const n=document.getElementById('s-name').value.trim(),c=document.getElementById('s-code').value.trim().toUpperCase(),s=document.getElementById('s-sec').value.trim(),e=document.getElementById('s-rm-err');
+  if(!n||!c){e.textContent='이름과 코드를 입력하세요';e.style.display='block';return;}
+  const old=JSON.parse(localStorage.getItem(K.SU)||'{}');
+  localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:s||old.secret}));
+  e.style.display='none';closeSheet();toast('저장됨 · 재시작 후 적용');
+}
+function resetAll(){if(!confirm('초기화할까요?'))return;if(presIv)clearInterval(presIv);if(idleIv)clearInterval(idleIv);try{db.collection('rooms').doc(roomId).collection('presence').doc(myId).delete();}catch{}localStorage.clear();location.reload();}
+
+// HELPERS
+function aH(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+function fTime(d){return d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+['su-c','s-code'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',function(){this.value=this.value.toUpperCase();});});
+
+const mf={name:'날씨',short_name:'날씨',start_url:'.',display:'standalone',background_color:'#0d1b2a',theme_color:'#0d1b2a',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23050505"/><text y="78" x="12" font-size="72">🔐</text></svg>',sizes:'192x192',type:'image/svg+xml'}]};
+const blob=new Blob([JSON.stringify(mf)],{type:'application/json'});
+document.getElementById('mf').href=URL.createObjectURL(blob);
+
+if('serviceWorker' in navigator){const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});}
+
+window.addEventListener('load',()=>{showWeather();});
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</html>
