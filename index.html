@@ -245,48 +245,115 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 </div>
 
 <!-- 날씨 위장 화면 -->
-<div id="weather-screen" style="display:flex;position:fixed;inset:0;background:linear-gradient(180deg,#1a6fa8 0%,#2d9be0 35%,#1a5a8a 100%);z-index:5;flex-direction:column;overflow:hidden;">
-  <!-- 상단 바 -->
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:max(20px,env(safe-area-inset-top)) 20px 10px;flex-shrink:0;">
-    <div style="font-size:13px;color:rgba(255,255,255,0.7)" id="w-time"></div>
-    <div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9)">날씨</div>
-    <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.12);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;">⚙️ 설정</button>
-  </div>
+<div id="weather-screen" style="display:flex;position:fixed;inset:0;z-index:5;flex-direction:column;overflow:hidden;" id="weather-screen">
+  <!-- 동적 배경 -->
+  <div id="w-bg" style="position:absolute;inset:0;background:linear-gradient(160deg,#1e88e5 0%,#42a5f5 40%,#1565c0 100%);z-index:0;transition:background 1s;"></div>
+  <!-- 태양/구름 장식 -->
+  <div id="w-deco" style="position:absolute;top:60px;right:20px;font-size:90px;opacity:0.85;z-index:1;line-height:1;filter:drop-shadow(0 4px 20px rgba(255,200,50,0.4));transition:all 1s;"></div>
 
-  <!-- 현재 위치 날씨 (메인) -->
-  <div style="padding:10px 24px 16px;flex-shrink:0;">
-    <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-bottom:4px;" id="w-loc">📍 내 위치</div>
-    <div style="font-size:72px;font-weight:200;color:#fff;line-height:1;" id="w-temp">--°</div>
-    <div style="font-size:16px;color:rgba(255,255,255,0.9);margin:4px 0;" id="w-desc">불러오는 중...</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.6);" id="w-hl">최고 --° 최저 --°</div>
-    <!-- 습도/바람/일출일몰 -->
-    <div style="display:flex;gap:14px;margin-top:10px;" id="w-extra">
-      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-humid">💧 --%</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-wind">💨 -- m/s</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.6)" id="w-sun">🌅 --:--</div>
-    </div>
-  </div>
-
-  <div style="flex:1;overflow-y:auto;padding:0 16px;padding-bottom:max(16px,env(safe-area-inset-bottom));">
-    <!-- 시간별 예보 -->
-    <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);margin-bottom:12px;">
-      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">시간별 예보</div>
-      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;overflow:hidden;">
+    <!-- 상단 바 -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:max(18px,env(safe-area-inset-top)) 18px 6px;flex-shrink:0;">
+      <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">☰</button>
+      <div style="text-align:center;">
+        <div style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;" id="w-loc-name">--</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);" id="w-time"></div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="toggleSearch()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">🔍</button>
+      </div>
     </div>
 
-    <!-- 주간 예보 -->
-    <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);margin-bottom:12px;">
-      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">주간 예보</div>
-      <div id="w-weekly"></div>
+    <!-- 검색창 (숨김) -->
+    <div id="w-search-wrap" style="display:none;padding:0 16px 8px;flex-shrink:0;">
+      <div style="display:flex;gap:8px;background:rgba(255,255,255,0.2);border-radius:14px;padding:10px 14px;align-items:center;backdrop-filter:blur(10px);">
+        <span style="color:rgba(255,255,255,0.7);">🔍</span>
+        <input id="w-search" type="text" placeholder="지역, 동, 시 검색..."
+          style="background:none;border:none;outline:none;color:#fff;font-size:15px;flex:1;font-family:inherit;"
+          oninput="searchCity(this.value)">
+        <button onclick="closeSearch()" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div id="w-search-results" style="background:rgba(15,30,60,0.97);border-radius:14px;margin-top:6px;display:none;max-height:240px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px);"></div>
     </div>
 
-    <!-- 도시 목록 -->
-    <div style="margin-bottom:8px;">
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">도시별 날씨</div>
-      <div id="w-cities"></div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;" id="w-scroll">
+
+      <!-- 메인 날씨 -->
+      <div style="padding:10px 24px 16px;">
+        <div style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;" id="w-desc-top">불러오는 중...</div>
+        <div style="display:flex;align-items:flex-start;gap:4px;">
+          <div style="font-size:88px;font-weight:200;color:#fff;line-height:1;" id="w-temp">--</div>
+          <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:200;">°</div>
+          <div style="font-size:20px;color:rgba(255,255,255,0.7);margin-top:18px;font-weight:300;">C</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+          <span style="color:#ff7043;font-size:14px;">↑ <span id="w-max">--</span>°</span>
+          <span style="color:#90caf9;font-size:14px;">↓ <span id="w-min">--</span>°</span>
+          <span style="color:rgba(255,255,255,0.6);font-size:13px;">체감 <span id="w-feel">--</span>°</span>
+        </div>
+        <div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);" id="w-rain-msg"></div>
+      </div>
+
+      <!-- 핵심 지표 -->
+      <div style="padding:0 16px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">🌧️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">강수확률</div>
+            <div id="w-rain" style="font-size:18px;font-weight:700;color:#fff;">--%</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">💧</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">습도</div>
+            <div id="w-humid" style="font-size:18px;font-weight:700;color:#fff;">--%</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">💨</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">바람</div>
+            <div id="w-wind" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">🌫️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">미세먼지</div>
+            <div id="w-dust" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">☀️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">자외선</div>
+            <div id="w-uv" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">🌅</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">일출</div>
+            <div id="w-sun" style="font-size:15px;font-weight:700;color:#fff;">--:--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 시간별 예보 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">시간별 예측</div>
+        <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+      </div>
+
+      <!-- 주간 예보 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:1px;">일일 예보</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);" id="w-forecast-days"></div>
+        </div>
+        <div id="w-weekly"></div>
+      </div>
+
+      <!-- 도시별 -->
+      <div style="padding:0 16px;margin-bottom:max(20px,env(safe-area-inset-bottom));">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">다른 지역</div>
+        <div id="w-cities"></div>
+      </div>
     </div>
   </div>
 </div>
+
 
 <!-- 개발자 메뉴 팝업 -->
 <div id="dev-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
@@ -303,6 +370,41 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     </div>
     <button id="dev-confirm-btn" style="background:#2a2a2a;color:#c8c8c8;border:1px solid #333;border-radius:12px;padding:12px 32px;font-size:14px;font-weight:600;cursor:pointer;width:100%;"
       onclick="closeDevMenu()">확인</button>
+  </div>
+</div>
+
+<!-- 도시 날씨 상세 팝업 -->
+<div id="city-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:linear-gradient(180deg,#1a6fa8,#0d3a5c);border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:500px;padding-bottom:max(24px,env(safe-area-inset-bottom));">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div id="cd-name" style="font-size:20px;font-weight:700;color:#fff"></div>
+      <button onclick="closeCityDetail()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;">닫기</button>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:16px;">
+      <div id="cd-temp" style="font-size:56px;font-weight:200;color:#fff;line-height:1"></div>
+      <div>
+        <div id="cd-desc" style="font-size:16px;color:rgba(255,255,255,0.9)"></div>
+        <div id="cd-hl" style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">습도</div>
+        <div id="cd-humid" style="font-size:18px;font-weight:600;color:#fff"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">바람</div>
+        <div id="cd-wind" style="font-size:18px;font-weight:600;color:#fff"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">일출</div>
+        <div id="cd-sun" style="font-size:15px;font-weight:600;color:#fff"></div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;letter-spacing:1px">시간별</div>
+      <div id="cd-hourly" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px;"></div>
+    </div>
   </div>
 </div>
 
@@ -392,9 +494,15 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
       </div>
     </div>
     <div class="hdr-right">
-      <button class="icon-btn" id="emg-btn" onclick="openEmergency()" title="전체삭제" style="color:#7a2020">🗑️</button>
-      <button class="icon-btn" onclick="openSheet()">⚙️</button>
-      <button class="icon-btn" onclick="forceQuit()" title="강제종료" style="color:#555;font-size:12px;font-weight:700;width:auto;padding:0 8px;">강제종료</button>
+      <button class="icon-btn" id="emg-btn" onclick="confirmEmergency()" title="전체삭제" style="color:#7a2020">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+      <button class="icon-btn" onclick="openSheet()">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="icon-btn" onclick="forceQuit()" title="강제종료" style="color:#444">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      </button>
     </div>
   </div>
 
@@ -525,71 +633,157 @@ let pendingDeleteId=null,pendingDeleteType=null;
 const K={PW:'sl_pw',CFG:'sl_cfg',SU:'sl_su',AF:'sl_af',AB:'sl_ab'};
 
 // ============ 날씨 위장 ============
-const CITIES = [
-  {name:'서울',lat:37.5665,lon:126.9780},
-  {name:'부산',lat:35.1796,lon:129.0756},
-  {name:'인천',lat:37.4563,lon:126.7052},
-  {name:'대구',lat:35.8714,lon:128.6014},
-  {name:'광주',lat:35.1595,lon:126.8526},
-  {name:'대전',lat:36.3504,lon:127.3845},
-  {name:'울산',lat:35.5384,lon:129.3114},
-  {name:'제주',lat:33.4996,lon:126.5312},
+const CITIES=[
+  {name:'서울',lat:37.5665,lon:126.9780},{name:'부산',lat:35.1796,lon:129.0756},
+  {name:'인천',lat:37.4563,lon:126.7052},{name:'대구',lat:35.8714,lon:128.6014},
+  {name:'광주',lat:35.1595,lon:126.8526},{name:'대전',lat:36.3504,lon:127.3845},
+  {name:'울산',lat:35.5384,lon:129.3114},{name:'제주',lat:33.4996,lon:126.5312},
+];
+const SEARCH_CITIES=[
+  {name:'서울',lat:37.5665,lon:126.9780},{name:'부산',lat:35.1796,lon:129.0756},
+  {name:'인천',lat:37.4563,lon:126.7052},{name:'대구',lat:35.8714,lon:128.6014},
+  {name:'광주',lat:35.1595,lon:126.8526},{name:'대전',lat:36.3504,lon:127.3845},
+  {name:'울산',lat:35.5384,lon:129.3114},{name:'제주',lat:33.4996,lon:126.5312},
+  {name:'수원',lat:37.2636,lon:127.0286},{name:'성남',lat:37.4449,lon:127.1389},
+  {name:'용인',lat:37.2411,lon:127.1776},{name:'안양',lat:37.3943,lon:126.9568},
+  {name:'고양',lat:37.6584,lon:126.8320},{name:'창원',lat:35.2280,lon:128.6811},
+  {name:'청주',lat:36.6424,lon:127.4890},{name:'전주',lat:35.8242,lon:127.1480},
+  {name:'천안',lat:36.8151,lon:127.1139},{name:'원주',lat:37.3422,lon:127.9202},
+  {name:'춘천',lat:37.8813,lon:127.7298},{name:'강릉',lat:37.7519,lon:128.8761},
+  {name:'포항',lat:36.0190,lon:129.3435},{name:'경주',lat:35.8562,lon:129.2247},
+  {name:'여수',lat:34.7604,lon:127.6622},{name:'순천',lat:34.9506,lon:127.4872},
+  {name:'목포',lat:34.8118,lon:126.3922},{name:'군산',lat:35.9676,lon:126.7368},
+  {name:'속초',lat:38.2070,lon:128.5918},{name:'평택',lat:36.9921,lon:127.1127},
+  {name:'구미',lat:36.1196,lon:128.3446},{name:'진주',lat:35.1798,lon:128.1076},
+  {name:'가곡리',lat:37.3800,lon:128.0100},{name:'혁신도시',lat:37.3500,lon:127.9500},
 ];
 const DAYS=['일','월','화','수','목','금','토'];
 const WX_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
-const WX_DESC={0:'맑음',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
+const WX_DESC={0:'대체로 화창',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
+// 날씨별 배경 그라데이션
+const WX_BG={
+  0:'linear-gradient(160deg,#1976d2 0%,#42a5f5 40%,#0d47a1 100%)',
+  1:'linear-gradient(160deg,#1976d2 0%,#64b5f6 40%,#1565c0 100%)',
+  2:'linear-gradient(160deg,#37474f 0%,#78909c 50%,#263238 100%)',
+  3:'linear-gradient(160deg,#37474f 0%,#607d8b 50%,#263238 100%)',
+  61:'linear-gradient(160deg,#1a237e 0%,#3949ab 50%,#0d1b4a 100%)',
+  63:'linear-gradient(160deg,#0d1b4a 0%,#283593 50%,#0a1128 100%)',
+  71:'linear-gradient(160deg,#37474f 0%,#90a4ae 50%,#263238 100%)',
+  95:'linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)',
+};
 
 let weatherLoaded=false;
 let devPressTimer=null;
 
 async function fetchWeather(lat,lon){
   try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&hourly=temperature_2m,weather_code&timezone=Asia%2FSeoul&forecast_days=7`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FSeoul&forecast_days=7`);
     return await r.json();
   }catch{return null;}
 }
-
-async function loadMainWeather(){
-  let lat=37.5665,lon=126.9780,locName='서울';
+async function fetchAirQuality(lat,lon){
   try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:4000}));
-    lat=pos.coords.latitude;lon=pos.coords.longitude;
+    const r=await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,uv_index&timezone=Asia%2FSeoul`);
+    return await r.json();
+  }catch{return null;}
+}
+function getDustLevel(pm10){
+  if(pm10==null)return{txt:'--',color:'rgba(255,255,255,0.7)'};
+  if(pm10<=30)return{txt:'좋음',color:'#80deea'};
+  if(pm10<=80)return{txt:'보통',color:'#a5d6a7'};
+  if(pm10<=150)return{txt:'나쁨',color:'#ffcc80'};
+  return{txt:'매우나쁨',color:'#ef9a9a'};
+}
+function getUVLevel(uv){
+  if(uv==null)return'--';
+  if(uv<3)return uv.toFixed(1)+' 낮음';
+  if(uv<6)return uv.toFixed(1)+' 보통';
+  if(uv<8)return uv.toFixed(1)+' 높음';
+  if(uv<11)return uv.toFixed(1)+' 매우높음';
+  return uv.toFixed(1)+' 위험';
+}
+function setBg(code){
+  const bg=WX_BG[code]||WX_BG[Math.floor(code/10)*10]||WX_BG[0];
+  document.getElementById('w-bg').style.background=bg;
+  document.getElementById('w-deco').textContent=WX_ICON[code]||'🌡️';
+}
+
+async function loadMainWeather(lat,lon,locName){
+  if(!lat){
+    lat=37.5665;lon=126.9780;locName='서울';
     try{
-      const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
-      const gd=await gr.json();
-      locName=gd.address?.city||gd.address?.town||gd.address?.county||'내 위치';
+      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
+      lat=pos.coords.latitude;lon=pos.coords.longitude;
+      try{
+        const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
+        const gd=await gr.json();
+        // 리/동 단위까지 표시
+        const addr=gd.address;
+        locName=addr?.village||addr?.suburb||addr?.neighbourhood||addr?.quarter||addr?.city_district||addr?.town||addr?.city||addr?.county||'내 위치';
+      }catch{}
     }catch{}
-  }catch{}
-  const d=await fetchWeather(lat,lon);
+  }
+  // 지역명 표시 (지도 핀 아이콘 포함)
+  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>';
+
+  const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
   if(!d)return;
   const c=d.current,daily=d.daily,code=c.weather_code;
-  document.getElementById('w-loc').textContent='📍 '+locName;
-  document.getElementById('w-temp').textContent=Math.round(c.temperature_2m)+'°';
-  document.getElementById('w-desc').textContent=(WX_ICON[code]||'🌡️')+' '+(WX_DESC[code]||'');
-  document.getElementById('w-hl').textContent=`최고 ${Math.round(daily.temperature_2m_max[0])}° 최저 ${Math.round(daily.temperature_2m_min[0])}°`;
-  document.getElementById('w-humid').textContent='💧 '+c.relative_humidity_2m+'%';
-  document.getElementById('w-wind').textContent='💨 '+Math.round(c.wind_speed_10m)+' m/s';
-  const sunrise=daily.sunrise[0]?.slice(11,16)||'--:--';
-  document.getElementById('w-sun').textContent='🌅 '+sunrise;
+  setBg(code);
+  document.getElementById('w-desc-top').textContent=WX_DESC[code]||'';
+  document.getElementById('w-temp').textContent=Math.round(c.temperature_2m);
+  document.getElementById('w-max').textContent=Math.round(daily.temperature_2m_max[0]);
+  document.getElementById('w-min').textContent=Math.round(daily.temperature_2m_min[0]);
+  document.getElementById('w-feel').textContent=Math.round(c.apparent_temperature);
+  const rain=c.precipitation_probability||daily.precipitation_probability_max[0]||0;
+  document.getElementById('w-rain-msg').textContent=rain>0?`강수확률 ${rain}%`:'당분간 강수 없음';
+  document.getElementById('w-rain').textContent=rain+'%';
+  document.getElementById('w-humid').textContent=c.relative_humidity_2m+'%';
+  document.getElementById('w-wind').textContent=Math.round(c.wind_speed_10m)+' m/s';
+  document.getElementById('w-sun').textContent=daily.sunrise[0]?.slice(11,16)||'--:--';
+  if(aq){
+    const dust=getDustLevel(aq.current?.pm10);
+    document.getElementById('w-dust').textContent=dust.txt;
+    document.getElementById('w-dust').style.color=dust.color;
+    document.getElementById('w-uv').textContent=getUVLevel(aq.current?.uv_index||daily.uv_index_max[0]);
+  }
   // 시간별
   const now=new Date().getHours();
   const hourly=d.hourly;
   const hw=document.getElementById('w-hourly');hw.innerHTML='';
-  for(let i=now;i<Math.min(now+8,24);i++){
+  for(let i=now;i<Math.min(now+9,24);i++){
     const ic=WX_ICON[hourly.weather_code[i]]||'🌡️';
     const tmp=Math.round(hourly.temperature_2m[i]);
+    const rn=hourly.precipitation_probability[i]||0;
     const label=i===now?'지금':`${i}시`;
-    hw.innerHTML+=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:40px"><div style="font-size:11px;color:rgba(255,255,255,0.6)">${label}</div><div style="font-size:16px">${ic}</div><div style="font-size:12px;color:#fff;font-weight:600">${tmp}°</div></div>`;
+    hw.innerHTML+=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:52px;padding:0 4px;border-right:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:11px;color:rgba(255,255,255,0.6)">${label}</div>
+      <div style="font-size:20px">${ic}</div>
+      <div style="font-size:13px;color:#fff;font-weight:600">${tmp}°</div>
+      <div style="font-size:10px;color:#90caf9">${rn}%</div>
+    </div>`;
   }
-  // 주간 예보
+  // 주간
   const ww=document.getElementById('w-weekly');ww.innerHTML='';
-  for(let i=0;i<7;i++){
+  document.getElementById('w-forecast-days').textContent=(daily.time?.length||7)+' 일';
+  for(let i=0;i<(daily.time?.length||7);i++){
     const date=new Date(daily.time[i]);
-    const day=i===0?'오늘':i===1?'내일':DAYS[date.getDay()]+'요일';
+    const day=i===0?'오늘':i===1?'내일':DAYS[date.getDay()];
+    const dateStr=(date.getMonth()+1)+'/'+(date.getDate());
     const ic=WX_ICON[daily.weather_code[i]]||'🌡️';
     const mx=Math.round(daily.temperature_2m_max[i]);
     const mn=Math.round(daily.temperature_2m_min[i]);
-    ww.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="font-size:13px;color:rgba(255,255,255,0.8);width:60px">${day}</div><div style="font-size:18px">${ic}</div><div style="font-size:13px;color:rgba(255,255,255,0.5)">${mn}°</div><div style="font-size:13px;color:#fff;font-weight:600">${mx}°</div></div>`;
+    const rn=daily.precipitation_probability_max[i]||0;
+    ww.innerHTML+=`<div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="width:40px;font-size:13px;color:rgba(255,255,255,0.9);font-weight:${i===0?'700':'400'}">${day}</div>
+      <div style="width:34px;font-size:11px;color:rgba(255,255,255,0.4)">${dateStr}</div>
+      <div style="font-size:20px;width:30px">${ic}</div>
+      <div style="flex:1;display:flex;align-items:center;gap:4px;">
+        ${rn>0?`<span style="font-size:11px;color:#90caf9">🌂 ${rn}%</span>`:'<span style="font-size:11px;color:transparent">0%</span>'}
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);width:36px;text-align:right">↑${mx}°</div>
+      <div style="font-size:13px;color:#90caf9;width:36px;text-align:right">↓${mn}°</div>
+    </div>`;
   }
 }
 
@@ -598,9 +792,19 @@ async function loadCityWeather(){
   container.innerHTML='';
   for(const city of CITIES){
     const card=document.createElement('div');
-    card.className='city-card';
-    card.style.cssText='background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);';
-    card.innerHTML=`<div><div style="font-size:16px;font-weight:600;color:#fff">${city.name}</div><div class="city-desc" style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">불러오는 중...</div></div><div class="city-temp" style="font-size:28px;font-weight:200;color:#fff">--°</div>`;
+    card.style.cssText='background:rgba(255,255,255,0.12);border-radius:16px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);cursor:pointer;transition:opacity .15s;';
+    card.innerHTML=`<div><div style="font-size:16px;font-weight:600;color:#fff">${city.name}</div><div class="city-desc" style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">불러오는 중...</div></div><div style="text-align:right"><div class="city-temp" style="font-size:30px;font-weight:200;color:#fff">--°</div></div>`;
+    card.addEventListener('click',()=>{
+      document.getElementById('w-desc-top').textContent='불러오는 중...';
+      document.getElementById('w-temp').textContent='--';
+      document.getElementById('w-deco').textContent='';
+      document.getElementById('w-hourly').innerHTML='';
+      document.getElementById('w-weekly').innerHTML='';
+      loadMainWeather(city.lat,city.lon,city.name);
+      document.getElementById('w-scroll').scrollTop=0;
+    });
+    card.addEventListener('mouseenter',()=>card.style.opacity='0.8');
+    card.addEventListener('mouseleave',()=>card.style.opacity='1');
     container.appendChild(card);
     fetchWeather(city.lat,city.lon).then(d=>{
       if(!d)return;
@@ -613,19 +817,50 @@ async function loadCityWeather(){
   }
 }
 
+// 검색
+function toggleSearch(){
+  const w=document.getElementById('w-search-wrap');
+  w.style.display=w.style.display==='none'?'block':'none';
+  if(w.style.display==='block')document.getElementById('w-search').focus();
+}
+function closeSearch(){
+  document.getElementById('w-search-wrap').style.display='none';
+  document.getElementById('w-search').value='';
+  document.getElementById('w-search-results').style.display='none';
+}
+function searchCity(q){
+  const box=document.getElementById('w-search-results');
+  if(!q.trim()){box.style.display='none';return;}
+  const results=SEARCH_CITIES.filter(c=>c.name.includes(q));
+  if(!results.length){box.innerHTML='<div style="padding:14px 16px;color:#555;font-size:13px;">검색 결과 없음</div>';box.style.display='block';return;}
+  box.style.display='block';
+  box.innerHTML=results.map(c=>`<div onclick="selectSearchCity(${c.lat},${c.lon},'${c.name}')" style="padding:13px 16px;color:#c8c8c8;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+    <span>📍 ${c.name}</span><span style="font-size:11px;color:#555">날씨 보기 →</span>
+  </div>`).join('');
+}
+function selectSearchCity(lat,lon,name){
+  closeSearch();
+  document.getElementById('w-desc-top').textContent='불러오는 중...';
+  document.getElementById('w-temp').textContent='--';
+  document.getElementById('w-deco').textContent='';
+  loadMainWeather(lat,lon,name);
+  document.getElementById('w-scroll').scrollTop=0;
+}
+
 function updateTime(){
   const now=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  const d=days[now.getDay()];
   const t=now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
   const el=document.getElementById('w-time');
-  if(el)el.textContent=t;
+  if(el)el.textContent=`${d} ${t}`;
 }
 
 async function showWeather(){
-  const ws=document.getElementById('weather-screen');
-  ws.style.display='flex';
+  document.getElementById('weather-screen').style.display='flex';
   updateTime();
   setInterval(updateTime,10000);
-  if(!weatherLoaded){weatherLoaded=true;loadMainWeather();loadCityWeather();}
+  if(!weatherLoaded){weatherLoaded=true;loadMainWeather(null,null,null);loadCityWeather();}
 }
 
 function hideWeather(){
@@ -648,7 +883,7 @@ function openDevMenu(){
       document.getElementById('dev-pw-inp').focus();
       btn.textContent='인증';
       btn.onclick=devAuth;
-    },800);
+    },2000);
   };
   btn.onmouseup=btn.ontouchend=btn.onmouseleave=()=>clearTimeout(devPressTimer);
 }
@@ -676,8 +911,45 @@ async function devAuth(){
 }
 
 // 강제종료
-function forceQuit(){
-  if(!confirm('강제종료 하시겠어요?'))return;
+// 날씨 알림 (상대 메시지 수신 시)
+let notifWeatherCache={txt:'',ts:0};
+async function sendWeatherNotif(){
+  if(Notification.permission==='default')await Notification.requestPermission();
+  if(Notification.permission!=='granted')return;
+  const now=Date.now();
+  // 1분 캐시
+  if(notifWeatherCache.txt&&now-notifWeatherCache.ts<60000){
+    new Notification(notifWeatherCache.txt,{icon:'',silent:true});
+    return;
+  }
+  try{
+    let lat=37.5665,lon=126.9780,locName='서울';
+    try{
+      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:3000}));
+      lat=pos.coords.latitude;lon=pos.coords.longitude;
+      const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
+      const gd=await gr.json();
+      locName=gd.address?.city||gd.address?.town||gd.address?.county||'내 위치';
+    }catch{}
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FSeoul`);
+    const d=await r.json();
+    const c=d.current;
+    const ic=WX_ICON[c.weather_code]||'🌡️';
+    const desc=WX_DESC[c.weather_code]||'';
+    const txt=`${ic} ${locName} ${Math.round(c.temperature_2m)}° ${desc}`;
+    notifWeatherCache={txt,ts:now};
+    new Notification(txt,{icon:'',silent:true});
+  }catch{}
+}
+
+async function forceQuit(){
+  // 대화 내용 삭제
+  try{
+    const msgs=await db.collection('rooms').doc(roomId).collection('messages').get();
+    const b1=db.batch();msgs.docs.forEach(d=>b1.delete(d.ref));await b1.commit();
+    const posts=await db.collection('rooms').doc(roomId).collection('posts').get();
+    const b2=db.batch();posts.docs.forEach(d=>b2.delete(d.ref));await b2.commit();
+  }catch{}
   inRoom=false;
   if(presIv)clearInterval(presIv);
   if(idleIv)clearInterval(idleIv);
@@ -724,27 +996,15 @@ function cancelDelete(){
   document.getElementById('del-confirm').classList.remove('on');
 }
 
-// 비상삭제
-function openEmergency(){
-  document.getElementById('emergency-confirm').classList.add('on');
-}
-function cancelEmergency(){
-  document.getElementById('emergency-confirm').classList.remove('on');
-}
+// 비상삭제 (확인 없이 바로)
+function cancelEmergency(){document.getElementById('emergency-confirm').classList.remove('on');}
 async function confirmEmergency(){
-  cancelEmergency();
   toast('삭제 중...');
   try{
-    // CHAT 삭제
     const msgs=await db.collection('rooms').doc(roomId).collection('messages').get();
-    const batch1=db.batch();
-    msgs.docs.forEach(d=>batch1.delete(d.ref));
-    await batch1.commit();
-    // BOARD 삭제
+    const batch1=db.batch();msgs.docs.forEach(d=>batch1.delete(d.ref));await batch1.commit();
     const posts=await db.collection('rooms').doc(roomId).collection('posts').get();
-    const batch2=db.batch();
-    posts.docs.forEach(d=>batch2.delete(d.ref));
-    await batch2.commit();
+    const batch2=db.batch();posts.docs.forEach(d=>batch2.delete(d.ref));await batch2.commit();
     toast('전체 삭제 완료');
   }catch(e){toast('삭제 실패');}
 }
@@ -905,7 +1165,10 @@ function listenM(){
         const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
         w.appendChild(b);w.appendChild(tm);
         document.getElementById('msgs').appendChild(w);
-        if(!isMe&&curPanel!=='chat'){chatUnread++;const bk=document.getElementById('b-chat');bk.textContent=chatUnread;bk.style.display='block';}
+        if(!isMe){
+          chatUnread++;const bk=document.getElementById('b-chat');bk.textContent=chatUnread;if(curPanel!=='chat')bk.style.display='block';
+          sendWeatherNotif();
+        }
       }
       if(ch.type==='removed'){const el=document.querySelector(`[data-m="${ch.doc.id}"]`);if(el)el.remove();}
     }
