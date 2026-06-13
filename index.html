@@ -660,11 +660,19 @@ function closeDevMenu(){
 }
 async function devAuth(){
   const pw=document.getElementById('dev-pw-inp').value;
-  const stored=localStorage.getItem('sl_pw');
+  const stored=localStorage.getItem(K.PW);
   const e=document.getElementById('dev-pw-err');
   if(!pw){e.textContent='코드를 입력하세요';return;}
   if(stored&&await hPw(pw)!==stored){e.textContent='인증 실패';document.getElementById('dev-pw-inp').value='';return;}
-  closeDevMenu();hideWeather();
+  closeDevMenu();
+  document.getElementById('weather-screen').style.display='none';
+  // 잠금화면 없이 바로 진입
+  if(!stored){
+    // 비번 미설정 시 설정 화면으로
+    document.getElementById('sl').classList.add('on');
+    return;
+  }
+  afterUnlock();
 }
 
 // 강제종료
