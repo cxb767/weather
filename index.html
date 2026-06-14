@@ -1306,7 +1306,7 @@ const mf={name:'날씨',short_name:'날씨',start_url:'.',display:'standalone',b
 const blob=new Blob([JSON.stringify(mf)],{type:'application/json'});
 document.getElementById('mf').href=URL.createObjectURL(blob);
 
-if('serviceWorker' in navigator){const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/weather/sw.js').catch(()=>{});}
 
 window.addEventListener('load',()=>{showWeather();});
 </script>
