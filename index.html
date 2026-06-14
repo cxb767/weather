@@ -80,104 +80,81 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 /* IDLE LOCK */
 #sil{z-index:40;}
 
-/* CHAT */
-#sch{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
+/* CHAT - ChatGPT Style */
+#sch{position:fixed;inset:0;display:none;flex-direction:column;background:#212121;}
 #sch.on{display:flex;}
 
-/* Header */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;padding-top:max(14px,env(safe-area-inset-top));background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+/* Header - ChatGPT 스타일 */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:#212121;border-bottom:1px solid #2f2f2f;flex-shrink:0;}
 .hdr-left{display:flex;align-items:center;gap:10px;}
-.hdr-logo{font-size:16px;font-weight:800;letter-spacing:-0.5px;color:var(--text3);}
-.hdr-logo span{color:var(--text3);}
-.peer-wrap{display:flex;align-items:center;gap:7px;}
-.pdot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:all .3s;}
-.pdot.on{background:var(--green-dot);}
-.pname{font-size:13px;color:var(--text3);}
-.hdr-right{display:flex;align-items:center;gap:8px;}
-.icon-btn{background:transparent;border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;transition:all .2s;}
-.icon-btn:active{color:var(--text2);}
-
-/* Status strip */
-.strip{display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
-.strip::-webkit-scrollbar{display:none;}
-.chip{display:flex;align-items:center;gap:5px;background:var(--s1);border-radius:20px;padding:4px 10px;white-space:nowrap;flex-shrink:0;border:1px solid var(--border);}
-.chip-dot{width:5px;height:5px;border-radius:50%;background:var(--green-dot);}
-.chip-txt{font-size:11px;color:var(--text3);}
-.strip-right{margin-left:auto;flex-shrink:0;}
-.lock-sel{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--text3);font-size:11px;cursor:pointer;outline:none;}
+.peer-wrap{display:flex;align-items:center;gap:8px;}
+.pdot{width:8px;height:8px;border-radius:50%;background:#3f3f3f;transition:all .3s;}
+.pdot.on{background:#19c37d;}
+.pname{font-size:15px;font-weight:600;color:#ececec;}
+.hdr-right{display:flex;align-items:center;gap:4px;}
+.icon-btn{background:transparent;border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8e8ea0;font-size:16px;transition:all .2s;}
+.icon-btn:hover{background:#2f2f2f;color:#ececec;}
+.icon-btn:active{opacity:.7;}
 
 /* Idle bar */
-.idle-bar-wrap{height:1px;background:var(--border);flex-shrink:0;}
-.idle-bar{height:100%;background:var(--text3);transition:width 1s linear;width:100%;}
+.idle-bar-wrap{height:1px;background:#2f2f2f;flex-shrink:0;}
+.idle-bar{height:100%;background:#19c37d;transition:width 1s linear;width:100%;}
 
-/* Tabs */
-.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
-.tab{flex:1;padding:13px;background:none;border:none;color:var(--text3);font-size:12px;font-weight:600;letter-spacing:1.5px;cursor:pointer;border-bottom:1px solid transparent;transition:all .2s;position:relative;}
-.tab.on{color:var(--text2);border-bottom-color:var(--text3);}
-.tab-badge{position:absolute;top:10px;right:calc(50% - 26px);background:var(--red-bright);color:#fff;border-radius:10px;padding:2px 7px;font-size:11px;min-width:18px;text-align:center;display:none;}
-
-/* Panels */
+/* Tabs - 숨김 */
+.tabs{display:none;}
+.tab-badge{display:none;}
 .panel{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 .panel.on{display:flex;}
 
-/* Messages */
-.msgs{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:3px;-webkit-overflow-scrolling:touch;}
-.msgs::-webkit-scrollbar{display:none;}
+/* Messages - ChatGPT 스타일 */
+.msgs{flex:1;overflow-y:auto;padding:20px 0;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;background:#212121;}
+.msgs::-webkit-scrollbar{width:6px;}
+.msgs::-webkit-scrollbar-track{background:transparent;}
+.msgs::-webkit-scrollbar-thumb{background:#3f3f3f;border-radius:3px;}
 
-.mw{display:flex;flex-direction:column;margin-bottom:2px;animation:pop .15s ease;}
+.mw{display:flex;padding:12px 16px;animation:pop .15s ease;gap:12px;}
 @keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.mw.me{align-items:flex-end;}
-.mw.you{align-items:flex-start;}
+.mw.me{background:#212121;flex-direction:row-reverse;}
+.mw.you{background:#2a2a2a;}
 
-.mbub{max-width:78%;padding:11px 15px;border-radius:20px;font-size:15px;line-height:1.6;word-break:break-word;position:relative;}
-.mw.me .mbub{background:#1e3a1e;color:#d4e8d4;border-bottom-right-radius:5px;}
-.mw.you .mbub{background:#1a1a2e;color:#d0d4e8;border-bottom-left-radius:5px;}
+/* 아바타 */
+.mav{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.mw.me .mav{background:#19c37d;color:#fff;}
+.mw.you .mav{background:#ab68ff;color:#fff;}
 
-/* Long press delete highlight */
+.mbub{flex:1;font-size:15px;line-height:1.7;word-break:break-word;color:#ececec;padding-top:4px;max-width:calc(100% - 44px);}
+.mw.me .mbub{text-align:left;}
 .mbub.pressing{opacity:.5;}
-.mtime{font-size:11px;color:#444;margin:3px 6px;}
+.mtime{font-size:10px;color:#3f3f3f;margin-top:4px;}
 
-.sysmsg{align-self:center;font-size:11px;color:var(--text3);padding:5px 14px;background:var(--s1);border-radius:20px;margin:6px 0;border:1px solid var(--border);}
-.date-div{align-self:center;font-size:11px;color:#444;background:#111;border:1px solid #222;border-radius:20px;padding:4px 14px;margin:14px 0;}
+.date-div{align-self:center;font-size:11px;color:#3f3f3f;padding:4px 14px;margin:8px 0;}
 
-/* Posts */
-.posts{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
-.posts::-webkit-scrollbar{display:none;}
+/* Empty - ChatGPT 스타일 */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#8e8ea0;background:#212121;}
+.empty-icon{font-size:40px;opacity:.3;}
+.empty-txt{font-size:16px;color:#8e8ea0;}
+.empty-sub{font-size:13px;color:#3f3f3f;}
 
-.post{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;animation:pop .15s ease;transition:opacity .2s;}
-.post.me{border-left:2px solid var(--me-border);}
-.post.you{border-left:2px solid var(--you-border);}
-.post.pressing{opacity:.4;}
-.post-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.post-who{font-size:12px;font-weight:600;color:var(--text3);}
-.post-when{font-size:11px;color:var(--text3);}
-.post-body{font-size:15px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;}
-.post-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:10px;}
-.post-hint{font-size:12px;color:var(--text3);}
+/* Input - ChatGPT 스타일 */
+.inp-wrap{padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:#212121;flex-shrink:0;}
+.inp-row{display:flex;gap:8px;align-items:flex-end;background:#2f2f2f;border-radius:16px;padding:8px 8px 8px 16px;border:1px solid #3f3f3f;}
+.ta{flex:1;background:transparent;border:none;color:#ececec;font-size:15px;resize:none;outline:none;min-height:24px;max-height:150px;line-height:1.6;font-family:inherit;padding:4px 0;}
+.ta::placeholder{color:#8e8ea0;}
+.snd{background:#19c37d;border:none;border-radius:10px;width:36px;height:36px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;transition:all .2s;}
+.snd:active{opacity:.7;}
+.snd:disabled{background:#3f3f3f;color:#8e8ea0;}
 
-/* Delete confirm overlay */
-.del-confirm{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;backdrop-filter:blur(6px);}
+/* Delete confirm */
+.del-confirm{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(8px);}
 .del-confirm.on{display:flex;}
-.del-confirm-txt{font-size:16px;color:var(--text2);}
-.del-confirm-sub{font-size:13px;color:var(--text3);}
-.del-confirm-btns{display:flex;gap:12px;}
-.del-btn-yes{background:rgba(192,57,43,.15);color:var(--red-bright);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:12px 28px;font-size:15px;font-weight:600;cursor:pointer;}
-.del-btn-no{background:var(--s2);color:var(--text2);border:1px solid var(--border);border-radius:12px;padding:12px 28px;font-size:15px;cursor:pointer;}
+.del-confirm-txt{font-size:16px;color:#ececec;}
+.del-confirm-sub{font-size:13px;color:#8e8ea0;}
+.del-confirm-btns{display:flex;gap:10px;}
+.del-btn-yes{background:#c0392b;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;}
+.del-btn-no{background:#2f2f2f;color:#ececec;border:1px solid #3f3f3f;border-radius:10px;padding:12px 28px;font-size:14px;cursor:pointer;}
 
-/* Empty */
-.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);}
-.empty-icon{font-size:32px;opacity:.2;}
-.empty-txt{font-size:14px;}
-
-/* Input */
-.inp-wrap{padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:var(--s1);border-top:1px solid var(--border);flex-shrink:0;}
-.inp-row{display:flex;gap:8px;align-items:flex-end;}
-.ta{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:11px 14px;color:var(--text);font-size:15px;resize:none;outline:none;min-height:44px;max-height:110px;line-height:1.5;transition:border-color .2s;font-family:inherit;}
-.ta:focus{border-color:var(--text3);}
-.ta::placeholder{color:var(--text3);}
-.snd{background:var(--s3);border:1px solid var(--border);border-radius:14px;width:44px;height:44px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:opacity .2s;}
-.snd:active{opacity:.6;}
-.snd.b{background:var(--s2);}
+/* lp-hint */
+.lp-hint{font-size:10px;color:#3f3f3f;text-align:center;padding:2px 0;background:#212121;}
 
 /* SETTINGS SHEET */
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:60;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
@@ -343,11 +320,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div id="w-weekly"></div>
       </div>
 
-      <!-- 도시별 -->
-      <div style="padding:0 16px;margin-bottom:max(20px,env(safe-area-inset-bottom));">
-        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;letter-spacing:1px;padding-left:4px;">다른 지역</div>
-        <div id="w-cities"></div>
-      </div>
+      <!-- 도시별 (숨김) -->
+      <div id="w-cities" style="display:none;"></div>
+      <div style="height:max(20px,env(safe-area-inset-bottom));"></div>
     </div>
   </div>
 </div>
@@ -481,53 +456,52 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   </div>
 </div>
 
-<!-- CHAT -->
+<!-- CHAT - ChatGPT Style -->
 <div id="sch">
   <div class="hdr">
     <div class="hdr-left">
       <div class="peer-wrap">
         <div class="pdot" id="pdot"></div>
-        <div class="pname" id="pname" style="font-size:15px;font-weight:600;color:#888;">연결 중...</div>
+        <div class="pname" id="pname">ChatGPT</div>
       </div>
     </div>
     <div class="hdr-right">
-      <button class="icon-btn" id="emg-btn" onclick="confirmEmergency()" title="전체삭제" style="color:#444">
-        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      <button class="icon-btn" onclick="confirmEmergency()" title="전체삭제">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
-      <button class="icon-btn" onclick="openSheet()" style="color:#444">
-        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <button class="icon-btn" onclick="openSheet()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       </button>
-      <button class="icon-btn" onclick="forceQuit()" title="강제종료" style="color:#c0392b">
-        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      <button class="icon-btn" onclick="forceQuit()" style="color:#c0392b">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
       </button>
     </div>
   </div>
 
   <div class="idle-bar-wrap"><div class="idle-bar" id="idle-bar"></div></div>
-
-  <div class="tabs">
-    <button class="tab on" id="t-chat" style="cursor:default;border-bottom-color:var(--text3);color:var(--text2);">대화<span class="tab-badge" id="b-chat"></span></button>
-  </div>
+  <div class="tabs"><button class="tab on" id="t-chat"><span class="tab-badge" id="b-chat"></span></button></div>
 
   <!-- CHAT PANEL -->
   <div class="panel on" id="p-chat">
     <div class="msgs" id="msgs">
-      <div class="empty" id="e-chat"><div class="empty-icon">💬</div><div class="empty-txt">메시지가 없어요</div></div>
+      <div class="empty" id="e-chat">
+        <div style="width:48px;height:48px;background:#19c37d;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">G</div>
+        <div class="empty-txt">새 대화</div>
+        <div class="empty-sub">메시지를 입력하세요</div>
+      </div>
     </div>
     <div class="lp-hint">길게 누르면 삭제</div>
     <div class="inp-wrap">
       <div class="inp-row">
-        <textarea class="ta" id="cta" placeholder="메시지" rows="1"
+        <textarea class="ta" id="cta" placeholder="메시지를 입력하세요..." rows="1"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
           oninput="aH(this);resetIdle()"></textarea>
         <button class="snd" onclick="sendMsg()">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
     </div>
   </div>
-
-
 </div>
 
 <!-- SETTINGS SHEET -->
@@ -641,17 +615,37 @@ const SEARCH_CITIES=[
 ];
 const DAYS=['일','월','화','수','목','금','토'];
 const WX_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
+const WX_SVG={
+  sun:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><circle cx="32" cy="32" r="14" fill="#FFD93D" stroke="#F4A800" stroke-width="2"/><g stroke="#FFD93D" stroke-width="3" stroke-linecap="round"><line x1="32" y1="4" x2="32" y2="12"/><line x1="32" y1="52" x2="32" y2="60"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="52" y1="32" x2="60" y2="32"/><line x1="11.5" y1="11.5" x2="17" y2="17"/><line x1="47" y1="47" x2="52.5" y2="52.5"/><line x1="52.5" y1="11.5" x2="47" y2="17"/><line x1="17" y1="47" x2="11.5" y2="52.5"/></g></svg>`,
+  cloud_sun:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><circle cx="22" cy="20" r="10" fill="#FFD93D" stroke="#F4A800" stroke-width="1.5"/><g stroke="#FFD93D" stroke-width="2" stroke-linecap="round"><line x1="22" y1="6" x2="22" y2="10"/><line x1="34" y1="20" x2="30" y2="20"/><line x1="30" y1="10" x2="27" y2="13"/></g><ellipse cx="38" cy="38" rx="18" ry="12" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="26" cy="40" rx="12" ry="9" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="46" cy="42" rx="10" ry="8" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/></svg>`,
+  cloud:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="30" rx="20" ry="13" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="22" cy="34" rx="14" ry="10" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="46" cy="36" rx="11" ry="9" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/></svg>`,
+  rain:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="24" rx="20" ry="13" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="14" ry="10" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><ellipse cx="46" cy="30" rx="11" ry="9" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><g stroke="#6ab0d4" stroke-width="2.5" stroke-linecap="round"><line x1="24" y1="44" x2="20" y2="54"/><line x1="34" y1="44" x2="30" y2="54"/><line x1="44" y1="44" x2="40" y2="54"/></g></svg>`,
+  snow:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="24" rx="20" ry="13" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="14" ry="10" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><g stroke="#a0c8e8" stroke-width="2" stroke-linecap="round"><line x1="24" y1="44" x2="24" y2="56"/><line x1="18" y1="50" x2="30" y2="50"/><line x1="19" y1="45" x2="29" y2="55"/><line x1="29" y1="45" x2="19" y2="55"/><line x1="40" y1="44" x2="40" y2="56"/><line x1="34" y1="50" x2="46" y2="50"/><line x1="35" y1="45" x2="45" y2="55"/><line x1="45" y1="45" x2="35" y2="55"/></g></svg>`,
+  thunder:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="22" rx="20" ry="13" fill="#7a8ea0" stroke="#5a6e80" stroke-width="1.5"/><ellipse cx="22" cy="26" rx="14" ry="10" fill="#7a8ea0" stroke="#5a6e80" stroke-width="1.5"/><polygon points="36,38 28,52 34,52 26,64 44,46 36,46" fill="#FFD93D" stroke="#F4A800" stroke-width="1"/></svg>`,
+  fog:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><g stroke="#a0b4c8" stroke-width="3" stroke-linecap="round"><line x1="10" y1="20" x2="54" y2="20"/><line x1="14" y1="30" x2="50" y2="30"/><line x1="10" y1="40" x2="54" y2="40"/><line x1="14" y1="50" x2="50" y2="50"/></g></svg>`,
+};
+function getWxSvg(code){
+  if(code===0)return WX_SVG.sun;
+  if(code<=2)return WX_SVG.cloud_sun;
+  if(code<=3)return WX_SVG.cloud;
+  if(code<=48)return WX_SVG.fog;
+  if(code<=55)return WX_SVG.rain;
+  if(code<=65)return WX_SVG.rain;
+  if(code<=75)return WX_SVG.snow;
+  if(code<=82)return WX_SVG.rain;
+  return WX_SVG.thunder;
+}
 const WX_DESC={0:'대체로 화창',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
 // 날씨별 배경 그라데이션
 const WX_BG={
-  0:'linear-gradient(160deg,#1976d2 0%,#42a5f5 40%,#0d47a1 100%)',
-  1:'linear-gradient(160deg,#1976d2 0%,#64b5f6 40%,#1565c0 100%)',
-  2:'linear-gradient(160deg,#37474f 0%,#78909c 50%,#263238 100%)',
-  3:'linear-gradient(160deg,#37474f 0%,#607d8b 50%,#263238 100%)',
-  61:'linear-gradient(160deg,#1a237e 0%,#3949ab 50%,#0d1b4a 100%)',
-  63:'linear-gradient(160deg,#0d1b4a 0%,#283593 50%,#0a1128 100%)',
-  71:'linear-gradient(160deg,#37474f 0%,#90a4ae 50%,#263238 100%)',
-  95:'linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)',
+  0:'linear-gradient(180deg,#0a1628 0%,#0d2140 40%,#0a1628 100%)',
+  1:'linear-gradient(180deg,#0a1628 0%,#0f2545 40%,#0a1628 100%)',
+  2:'linear-gradient(180deg,#0d0d0d 0%,#1a1a2e 50%,#0d0d0d 100%)',
+  3:'linear-gradient(180deg,#0a0a0a 0%,#141414 50%,#0a0a0a 100%)',
+  61:'linear-gradient(180deg,#050d1a 0%,#0a1428 50%,#050d1a 100%)',
+  63:'linear-gradient(180deg,#040810 0%,#080f1e 50%,#040810 100%)',
+  71:'linear-gradient(180deg,#0d0d12 0%,#141420 50%,#0d0d12 100%)',
+  95:'linear-gradient(180deg,#050508 0%,#0a0a12 50%,#050508 100%)',
 };
 
 let weatherLoaded=false;
@@ -659,7 +653,7 @@ let devPressTimer=null;
 
 async function fetchWeather(lat,lon){
   try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FSeoul&forecast_days=7`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FSeoul&forecast_days=14`);
     return await r.json();
   }catch{return null;}
 }
@@ -687,7 +681,7 @@ function getUVLevel(uv){
 function setBg(code){
   const bg=WX_BG[code]||WX_BG[Math.floor(code/10)*10]||WX_BG[0];
   document.getElementById('w-bg').style.background=bg;
-  document.getElementById('w-deco').textContent=WX_ICON[code]||'🌡️';
+  document.getElementById('w-deco').innerHTML=getWxSvg(code);
 }
 
 async function loadMainWeather(lat,lon,locName){
@@ -734,7 +728,7 @@ async function loadMainWeather(lat,lon,locName){
   const hourly=d.hourly;
   const hw=document.getElementById('w-hourly');hw.innerHTML='';
   for(let i=now;i<Math.min(now+9,24);i++){
-    const ic=WX_ICON[hourly.weather_code[i]]||'🌡️';
+    const ic=WX_ICON[hourly.weather_code[i]]||'🌡️'; // keep emoji for small
     const tmp=Math.round(hourly.temperature_2m[i]);
     const rn=hourly.precipitation_probability[i]||0;
     const label=i===now?'지금':`${i}시`;
@@ -748,7 +742,7 @@ async function loadMainWeather(lat,lon,locName){
   // 주간
   const ww=document.getElementById('w-weekly');ww.innerHTML='';
   document.getElementById('w-forecast-days').textContent=(daily.time?.length||7)+' 일';
-  for(let i=0;i<(daily.time?.length||7);i++){
+  for(let i=0;i<Math.min(daily.time?.length||14,14);i++){
     const date=new Date(daily.time[i]);
     const day=i===0?'오늘':i===1?'내일':DAYS[date.getDay()];
     const dateStr=(date.getMonth()+1)+'/'+(date.getDate());
@@ -779,7 +773,7 @@ async function loadCityWeather(){
     card.addEventListener('click',()=>{
       document.getElementById('w-desc-top').textContent='불러오는 중...';
       document.getElementById('w-temp').textContent='--';
-      document.getElementById('w-deco').textContent='';
+      document.getElementById('w-deco').innerHTML='';
       document.getElementById('w-hourly').innerHTML='';
       document.getElementById('w-weekly').innerHTML='';
       loadMainWeather(city.lat,city.lon,city.name);
@@ -824,7 +818,7 @@ function selectSearchCity(lat,lon,name){
   closeSearch();
   document.getElementById('w-desc-top').textContent='불러오는 중...';
   document.getElementById('w-temp').textContent='--';
-  document.getElementById('w-deco').textContent='';
+  document.getElementById('w-deco').innerHTML='';
   loadMainWeather(lat,lon,name);
   document.getElementById('w-scroll').scrollTop=0;
 }
@@ -1159,10 +1153,15 @@ function listenM(){
           const dd=document.createElement('div');dd.className='date-div';dd.textContent=dateStr;msgs.appendChild(dd);
         }
         const w=document.createElement('div');w.className='mw '+(isMe?'me':'you');w.setAttribute('data-m',id);
+        // 아바타
+        const av=document.createElement('div');av.className='mav';
+        av.textContent=isMe?(myName?myName[0].toUpperCase():'나'):(d.senderName?d.senderName[0].toUpperCase():'상');
         const b=document.createElement('div');b.className='mbub';b.textContent=txt;
         addLongPress(b,()=>showDeleteConfirm(id,'msg'));
         const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
-        w.appendChild(b);w.appendChild(tm);
+        const inner=document.createElement('div');inner.style.cssText='display:flex;flex-direction:column;flex:1;max-width:calc(100% - 44px);';
+        inner.appendChild(b);inner.appendChild(tm);
+        w.appendChild(av);w.appendChild(inner);
         msgs.appendChild(w);
         if(!isMe){
           chatUnread++;const bk=document.getElementById('b-chat');bk.textContent=chatUnread;if(curPanel!=='chat')bk.style.display='block';
