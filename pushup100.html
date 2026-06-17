@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f11">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PUSH-100">
+<link rel="manifest" href="push100-manifest.json">
+<title>푸쉬업 100회 챌린지</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Oswald:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #181a1e;
+    --card: #1f2227;
+    --border: #2a2d35;
+    --accent: #e8ff47;
+    --accent2: #ff4747;
+    --rest: #47b8ff;
+    --text: #f0f2f8;
+    --muted: #7a7f8e;
+    --success: #47ffb8;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .header-text { flex: 1; }
+  .header-text h1 { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 0.03em; }
+  .header-text p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .btn-settings {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .btn-settings:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .modal-box h2 { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--accent); margin-bottom: 6px; }
+  .modal-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+  .btn-danger {
+    background: rgba(255,71,71,0.12);
+    border: 1px solid var(--accent2);
+    color: var(--accent2);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  /* SETUP MODAL */
+  .setup-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 500;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .setup-modal-overlay.open { display: flex; }
+  .setup-modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+  }
+  .setup-modal-box h2 { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--accent); margin-bottom: 6px; }
+  .setup-modal-box > p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* LAYOUT */
+  main { padding: 16px; max-width: 720px; margin: 0 auto; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* FORM */
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  input[type="date"], select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'Noto Sans KR', sans-serif;
+    margin-bottom: 16px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  input[type="date"]:focus { border-color: var(--accent); }
+
+  .level-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .level-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .level-btn.selected { border-color: var(--accent); background: rgba(232,255,71,0.08); }
+  .level-btn .lv-num { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--accent); }
+  .level-btn .lv-range { font-size: 11px; color: var(--text); margin-top: 3px; font-weight: 500; }
+  .level-btn .lv-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #0e0f11;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* STATUS BANNER */
+  .status-banner {
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-banner.today-rest { background: rgba(71,184,255,0.1); border: 1px solid rgba(71,184,255,0.35); }
+  .status-banner.today-workout { background: rgba(232,255,71,0.08); border: 1px solid rgba(232,255,71,0.3); }
+  .status-banner.done { background: rgba(71,255,184,0.08); border: 1px solid rgba(71,255,184,0.3); }
+  .status-icon { font-size: 28px; flex-shrink: 0; }
+  .status-text h3 { font-size: 15px; font-weight: 700; }
+  .status-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+  .stat-num { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 600; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 14px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── 6주 전체 캘린더 ── */
+  .full-calendar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .full-calendar-header {
+    background: var(--surface);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .full-calendar-header h3 { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0.06em; }
+  .full-calendar-header span { font-size: 18px; color: var(--muted); transition: transform 0.2s; }
+  .full-calendar-header span.open { transform: rotate(180deg); }
+  .full-calendar-body { display: none; padding: 14px 16px 16px; }
+  .full-calendar-body.open { display: block; }
+
+  .fc-week { margin-bottom: 12px; }
+  .fc-week-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(232,255,71,0.15);
+  }
+  .fc-days { display: flex; gap: 5px; flex-wrap: wrap; }
+  .fc-day {
+    flex: 1;
+    min-width: 36px;
+    max-width: 48px;
+    border-radius: 7px;
+    padding: 7px 4px;
+    text-align: center;
+    font-size: 10px;
+  }
+  .fc-day .fcd-dow { color: var(--muted); margin-bottom: 3px; font-size: 9px; }
+  .fc-day .fcd-num { font-weight: 700; font-size: 13px; }
+  .fc-day .fcd-tag { font-size: 9px; margin-top: 2px; }
+  .fc-day.fc-workout { background: rgba(232,255,71,0.1); border: 1px solid rgba(232,255,71,0.25); }
+  .fc-day.fc-workout .fcd-num { color: var(--accent); }
+  .fc-day.fc-workout .fcd-tag { color: var(--accent); }
+  .fc-day.fc-rest { background: var(--surface); border: 1px solid rgba(42,45,53,0.6); }
+  .fc-day.fc-rest .fcd-num { color: var(--muted); }
+  .fc-day.fc-rest .fcd-tag { color: var(--border); }
+  .fc-day.fc-today { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .fc-day.fc-done { background: rgba(71,255,184,0.1); border: 1px solid rgba(71,255,184,0.3); }
+  .fc-day.fc-done .fcd-num { color: var(--success); }
+  .fc-day.fc-done .fcd-tag { color: var(--success); }
+
+  /* DAY TABS */
+  .day-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .day-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .day-tab.active { border-color: var(--accent); background: rgba(232,255,71,0.07); }
+  .day-tab.completed::after { content: '✓'; position: absolute; top: 4px; right: 6px; font-size: 11px; color: var(--success); font-weight: 700; }
+  .day-tab .dt-label { font-family: 'Oswald', sans-serif; font-size: 15px; color: var(--accent); }
+  .day-tab .dt-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* REST TIMER */
+  .rest-timer {
+    background: var(--card);
+    border: 2px solid var(--rest);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    text-align: center;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .rest-timer.active { display: block; }
+  .rest-timer h3 { font-size: 13px; color: var(--rest); letter-spacing: 0.1em; font-weight: 500; margin-bottom: 10px; }
+  .timer-ring { position: relative; width: 110px; height: 110px; margin: 0 auto 12px; }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring .ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+  .timer-ring .ring-fill { fill: none; stroke: var(--rest); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+  .timer-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: 'Oswald', sans-serif; font-size: 30px; font-weight: 600; color: var(--rest); }
+  .rest-next { font-size: 13px; color: var(--muted); }
+  .rest-next strong { color: var(--text); font-size: 15px; }
+  .btn-skip { background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); padding: 7px 18px; font-size: 12px; cursor: pointer; margin-top: 12px; font-family: 'Noto Sans KR', sans-serif; }
+  .btn-skip:hover { border-color: var(--muted); color: var(--text); }
+
+  /* SET LIST */
+  .sets-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+  .sets-header { background: var(--surface); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .sets-header h3 { font-family: 'Oswald', sans-serif; font-size: 15px; color: var(--text); letter-spacing: 0.04em; }
+  .rest-badge { background: rgba(71,184,255,0.15); color: var(--rest); border-radius: 20px; padding: 4px 11px; font-size: 11px; font-weight: 500; }
+  .set-row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid rgba(42,45,53,0.5); transition: background 0.2s; gap: 12px; }
+  .set-row:last-child { border-bottom: none; }
+  .set-row.set-done { background: rgba(71,255,184,0.04); }
+  .set-row.set-active { background: rgba(232,255,71,0.05); }
+  .set-num { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--muted); width: 38px; flex-shrink: 0; }
+  .set-row.set-done .set-num { color: var(--success); }
+  .set-row.set-active .set-num { color: var(--accent); }
+  .set-info { flex: 1; }
+  .set-target { font-size: 21px; font-weight: 700; color: var(--text); }
+  .set-target span { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .set-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .set-row.set-active .set-sub { color: var(--accent); }
+
+  .set-check {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 3px solid #555;
+    background: #2a2d35;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    font-weight: 900;
+    color: transparent;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .set-check::after {
+    content: '✓';
+    position: absolute;
+    font-size: 24px;
+    font-weight: 900;
+    color: #555;
+    line-height: 1;
+  }
+  .set-check:hover { border-color: var(--accent); background: rgba(232,255,71,0.15); }
+  .set-check:hover::after { color: var(--accent); }
+  .set-check.checked { background: var(--success); border-color: var(--success); }
+  .set-check.checked::after { color: #0e0f11; }
+
+  /* COMPLETE */
+  .complete-card { background: var(--card); border: 1px solid var(--success); border-radius: var(--radius); padding: 28px 24px; text-align: center; margin-bottom: 14px; }
+  .complete-card .big-emoji { font-size: 52px; margin-bottom: 14px; }
+  .complete-card h2 { font-family: 'Oswald', sans-serif; font-size: 26px; color: var(--success); margin-bottom: 8px; }
+  .complete-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .total-reps { font-family: 'Oswald', sans-serif; font-size: 48px; color: var(--accent); margin: 14px 0 4px; }
+  .total-label { font-size: 13px; color: var(--muted); }
+  .btn-next-day { width: 100%; background: var(--accent); color: #0e0f11; border: none; border-radius: 10px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; margin-bottom: 10px; }
+
+  /* WEEK INFO CARD */
+  .week-info-card {
+    background: var(--card);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .week-info-card .wi-week {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .week-info-card .wi-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .week-info-card .wi-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .week-info-card .wi-tips {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .week-info-card .wi-tip {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  .week-info-card .wi-tip span:first-child { color: var(--accent); flex-shrink: 0; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--accent); color: var(--accent); padding: 11px 22px; border-radius: 24px; font-size: 14px; font-weight: 500; z-index: 999; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">💪</div>
+  <div class="header-text">
+    <h1>PUSH-100 CHALLENGE</h1>
+    <p>푸쉬업 100회 달성 6주 플랜</p>
+  </div>
+  <button class="btn-settings" onclick="openSettings()">⚙ 설정</button>
+</header>
+
+<main>
+
+  <!-- ── SETUP (첫 실행) ── -->
+  <div class="screen active" id="screen-setup">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 20px;margin-bottom:16px;">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:22px;color:var(--accent);margin-bottom:8px;">챌린지 시작하기</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.7;">현재 최대 푸쉬업 횟수를 테스트한 후 시작일과 수준을 선택하세요.<br>주 3회(이틀 간격)로 진행됩니다.</p>
+      <label>챌린지 시작일</label>
+      <input type="date" id="start-date">
+      <label>현재 최대 연속 횟수 (정자세 1세트)</label>
+      <div class="level-grid">
+        <div class="level-btn" onclick="selectLevel(1,this)">
+          <div class="lv-num">LV 1</div>
+          <div class="lv-range">5회 이하</div>
+          <div class="lv-label">초급</div>
+        </div>
+        <div class="level-btn" onclick="selectLevel(2,this)">
+          <div class="lv-num">LV 2</div>
+          <div class="lv-range">6–10회</div>
+          <div class="lv-label">중급</div>
+        </div>
+        <div class="level-btn" onclick="selectLevel(3,this)">
+          <div class="lv-num">LV 3</div>
+          <div class="lv-range">11–20회</div>
+          <div class="lv-label">상급</div>
+        </div>
+      </div>
+      <small style="display:block;font-size:11px;color:var(--muted);margin-bottom:18px;">* Week 4–6는 레벨 기준이 자동으로 변경됩니다.</small>
+      <button class="btn-primary" id="btn-start" disabled onclick="startChallenge()">챌린지 시작 →</button>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="screen" id="screen-main">
+
+    <div id="status-banner" class="status-banner today-workout">
+      <div class="status-icon" id="status-icon">💥</div>
+      <div class="status-text">
+        <h3 id="status-title">오늘은 운동일!</h3>
+        <p id="status-sub">집중해서 자세를 바로잡고 수행하세요</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="stat-week">W1</div><div class="stat-label">현재 주차</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-day-num">D1</div><div class="stat-label">현재 운동일</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-total-reps">0</div><div class="stat-label">오늘 총 횟수</div></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="prog-label">전체 진행</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- 6주 전체 캘린더 -->
+    <div class="full-calendar">
+      <div class="full-calendar-header" onclick="toggleCalendar(this)">
+        <h3>📅 6주 전체 일정</h3>
+        <span id="cal-arrow">▼</span>
+      </div>
+      <div class="full-calendar-body" id="full-cal-body"></div>
+    </div>
+
+    <div class="day-tabs" id="day-tabs"></div>
+
+    <div class="rest-timer" id="rest-timer">
+      <h3>⏱ 세트 간 휴식</h3>
+      <div class="timer-ring">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle class="ring-bg" cx="55" cy="55" r="47"/>
+          <circle class="ring-fill" id="ring-fill" cx="55" cy="55" r="47" stroke-dasharray="295.3" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-num" id="timer-num">60</div>
+      </div>
+      <div class="rest-next">다음 세트 목표: <strong id="rest-next-target">—</strong></div>
+      <button class="btn-skip" onclick="skipRest()">건너뛰기</button>
+    </div>
+
+    <!-- 주차 설명 -->
+    <div class="week-info-card" id="week-info-card"></div>
+
+    <div class="sets-card" id="sets-card">
+      <div class="sets-header">
+        <h3 id="sets-day-label">DAY 1</h3>
+        <div class="rest-badge" id="rest-badge">세트 간 휴식 60초</div>
+      </div>
+      <div id="set-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ── COMPLETE ── -->
+  <div class="screen" id="screen-day-complete">
+    <div class="complete-card">
+      <div class="big-emoji">🔥</div>
+      <h2>운동 완료!</h2>
+      <div class="total-reps" id="complete-total">0</div>
+      <div class="total-label">오늘 총 푸쉬업</div>
+      <p style="margin-top:14px;" id="complete-msg">잘 하셨습니다!</p>
+    </div>
+    <button class="btn-next-day" onclick="goToMain()">← 메인으로</button>
+  </div>
+
+</main>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal-box">
+    <h2>⚙ 설정</h2>
+    <p>챌린지를 처음부터 다시 시작하거나 시작일/레벨을 변경합니다.</p>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="openSetupModal()">📅 시작일 / 레벨 변경</button>
+      <button class="btn-danger" onclick="confirmReset()">🔄 처음부터 다시 시작</button>
+      <button class="btn-cancel" onclick="closeSettings()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 설정 변경 모달 -->
+<div class="setup-modal-overlay" id="modal-setup-edit">
+  <div class="setup-modal-box">
+    <h2>시작일 / 레벨 변경</h2>
+    <p>변경하면 기존 진행 기록은 유지하되 일정만 재계산됩니다.</p>
+    <label>시작일</label>
+    <input type="date" id="edit-start-date">
+    <label>레벨 (현재 최대 연속 횟수)</label>
+    <div class="level-grid" id="edit-level-grid">
+      <div class="level-btn" onclick="selectEditLevel(0,this)">
+        <div class="lv-num">LV 1</div>
+        <div class="lv-range">5회 이하</div>
+        <div class="lv-label">초급</div>
+      </div>
+      <div class="level-btn" onclick="selectEditLevel(1,this)">
+        <div class="lv-num">LV 2</div>
+        <div class="lv-range">6–10회</div>
+        <div class="lv-label">중급</div>
+      </div>
+      <div class="level-btn" onclick="selectEditLevel(2,this)">
+        <div class="lv-num">LV 3</div>
+        <div class="lv-range">11–20회</div>
+        <div class="lv-label">상급</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn-primary" style="flex:1;" onclick="applyEditSettings()">적용</button>
+      <button class="btn-cancel" style="flex:1;" onclick="closeSetupModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PLAN = {
+  1: {
+    levelLabels: ['5회 이하','6–10회','11–20회'],
+    days: [
+      { rest: 60, sets: [[2,6,10],[3,6,12],[2,4,7],[2,4,7],[3,5,9]] },
+      { rest: 60, sets: [[3,6,10],[4,8,12],[2,6,8],[3,6,8],[4,7,12]] },
+      { rest: 60, sets: [[4,8,11],[5,10,15],[4,7,9],[4,7,9],[5,10,13]] }
+    ]
+  },
+  2: {
+    levelLabels: ['5회 이하','6–10회','11–20회'],
+    days: [
+      { rest: 60, sets: [[4,9,14],[6,11,14],[4,8,10],[4,8,10],[6,11,15]] },
+      { rest: 90, sets: [[5,10,14],[6,12,16],[4,9,12],[4,9,12],[7,13,17]] },
+      { rest: 120, sets: [[5,12,16],[7,13,17],[5,10,14],[5,10,14],[8,15,20]] }
+    ]
+  },
+  3: {
+    levelLabels: ['16–20회','21–25회','25회 초과'],
+    days: [
+      { rest: 60, sets: [[10,12,14],[12,17,18],[7,13,14],[7,13,14],[9,17,20]] },
+      { rest: 90, sets: [[10,14,20],[12,19,25],[8,14,15],[8,14,15],[12,19,25]] },
+      { rest: 120, sets: [[11,16,22],[13,21,30],[9,15,20],[9,15,20],[13,21,28]] }
+    ]
+  },
+  4: {
+    levelLabels: ['16–20회','21–25회','25회 초과'],
+    days: [
+      { rest: 60, sets: [[12,18,21],[14,22,25],[11,16,21],[10,16,21],[16,25,32]] },
+      { rest: 90, sets: [[14,20,25],[16,25,29],[12,20,25],[12,20,25],[18,28,36]] },
+      { rest: 120, sets: [[16,23,29],[18,28,33],[13,23,29],[13,23,29],[20,33,40]] }
+    ]
+  },
+  5: {
+    levelLabels: ['31–35회','36–40회','40회 초과'],
+    days: [
+      { rest: 60, sets: [[17,28,36],[19,35,40],[15,25,30],[15,22,24],[20,35,40]] },
+      { rest: 45, sets: [[10,18,19],[10,18,19],[13,20,22],[13,20,22],[10,14,18],[10,14,18],[9,16,22],[25,40,45]] },
+      { rest: 45, sets: [[13,18,20],[13,18,20],[15,20,24],[15,20,24],[12,17,20],[12,17,20],[10,20,22],[30,45,50]] }
+    ]
+  },
+  6: {
+    levelLabels: ['46–50회','51–60회','60회 초과'],
+    days: [
+      { rest: 60, sets: [[25,40,45],[30,50,55],[20,25,35],[15,25,30],[40,50,55]] },
+      { rest: 45, sets: [[14,20,22],[14,20,22],[15,23,30],[15,23,30],[14,20,24],[14,20,24],[10,18,18],[10,18,18],[44,53,58]] },
+      { rest: 45, sets: [[13,22,26],[13,22,26],[17,30,33],[17,30,33],[16,25,26],[16,25,26],[14,18,22],[14,18,22],[50,55,60]] }
+    ]
+  }
+};
+
+let state = {};
+let selectedLevel = null;
+let editLevel = null;
+let timerInterval = null;
+
+function loadState() {
+  const s = localStorage.getItem('pushup_state_v2');
+  if (s) state = JSON.parse(s);
+}
+function saveState() {
+  localStorage.setItem('pushup_state_v2', JSON.stringify(state));
+}
+
+/* ── SETUP ── */
+(function() {
+  const t = new Date();
+  document.getElementById('start-date').value = toDateStr(t);
+})();
+
+function selectLevel(lv, el) {
+  document.querySelectorAll('#screen-setup .level-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLevel = lv - 1;
+  checkSetupReady();
+}
+document.getElementById('start-date').addEventListener('input', checkSetupReady);
+function checkSetupReady() {
+  const d = document.getElementById('start-date').value;
+  document.getElementById('btn-start').disabled = !(d && selectedLevel !== null);
+}
+
+function startChallenge() {
+  const startStr = document.getElementById('start-date').value;
+  const workoutDays = buildSchedule(startStr);
+  state = {
+    startDate: startStr,
+    initialLevel: selectedLevel,
+    week: 1,
+    workoutDay: 1,
+    setsDone: [],
+    workoutDays,
+    completedDays: [],
+  };
+  saveState();
+  showScreen('screen-main');
+  renderMain();
+}
+
+function buildSchedule(startStr) {
+  const days = [];
+  const base = new Date(startStr + 'T00:00:00');
+  for (let w = 0; w < 6; w++) {
+    for (let d = 0; d < 3; d++) {
+      const dt = new Date(base);
+      dt.setDate(base.getDate() + w * 7 + d * 2);
+      days.push(toDateStr(dt));
+    }
+  }
+  return days;
+}
+
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayStr() { return toDateStr(new Date()); }
+function formatDate(str) {
+  const d = new Date(str + 'T00:00:00');
+  const dows = ['일','월','화','수','목','금','토'];
+  return `${d.getMonth()+1}/${d.getDate()}(${dows[d.getDay()]})`;
+}
+
+/* ── MAIN RENDER ── */
+function renderMain() {
+  const today = todayStr();
+  const completedCount = state.completedDays.length;
+  const pct = Math.round(completedCount / 18 * 100);
+
+  document.getElementById('prog-label').textContent = `${completedCount}/18 세션 완료`;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('stat-week').textContent = `W${state.week}`;
+  document.getElementById('stat-day-num').textContent = `D${state.workoutDay}`;
+
+  const todayIsWorkout = state.workoutDays.includes(today);
+  const todayDone = state.completedDays.includes(today);
+  const banner = document.getElementById('status-banner');
+  banner.className = 'status-banner';
+  if (todayDone) {
+    banner.classList.add('done');
+    document.getElementById('status-icon').textContent = '✅';
+    document.getElementById('status-title').textContent = '오늘 운동 완료!';
+    document.getElementById('status-sub').textContent = '잘 하셨습니다. 충분히 쉬세요.';
+  } else if (todayIsWorkout) {
+    banner.classList.add('today-workout');
+    document.getElementById('status-icon').textContent = '💥';
+    document.getElementById('status-title').textContent = '오늘은 운동일!';
+    document.getElementById('status-sub').textContent = '집중해서 자세를 바로잡고 수행하세요';
+  } else {
+    banner.classList.add('today-rest');
+    document.getElementById('status-icon').textContent = '💤';
+    const next = state.workoutDays.find(d => d > today);
+    document.getElementById('status-title').textContent = '오늘은 휴식일';
+    document.getElementById('status-sub').textContent = `다음 운동일: ${next ? formatDate(next) : '—'}`;
+  }
+
+  renderFullCalendar();
+  renderDayTabs();
+  renderWeekInfo();
+  renderSetList();
+}
+
+/* ── 6주 전체 캘린더 ── */
+function renderFullCalendar() {
+  const today = todayStr();
+  const body = document.getElementById('full-cal-body');
+  body.innerHTML = '';
+
+  for (let w = 0; w < 6; w++) {
+    const weekDiv = document.createElement('div');
+    weekDiv.className = 'fc-week';
+
+    const label = document.createElement('div');
+    label.className = 'fc-week-label';
+    // 이번 주 첫 운동일 날짜
+    const firstSessionIdx = w * 3;
+    const firstDate = state.workoutDays[firstSessionIdx];
+    label.textContent = `WEEK ${w+1}  ${firstDate ? formatDate(firstDate) : ''}`;
+    weekDiv.appendChild(label);
+
+    const daysDiv = document.createElement('div');
+    daysDiv.className = 'fc-days';
+
+    // 각 주의 7일 (시작일~+6)
+    const weekStart = new Date(state.workoutDays[firstSessionIdx] + 'T00:00:00');
+    const dows = ['일','월','화','수','목','금','토'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      const ds = toDateStr(d);
+      const isWorkout = state.workoutDays.includes(ds);
+      const isDone = state.completedDays.includes(ds);
+      const isToday = ds === today;
+
+      const div = document.createElement('div');
+      div.className = 'fc-day';
+      if (isDone) div.classList.add('fc-done');
+      else if (isWorkout) div.classList.add('fc-workout');
+      else div.classList.add('fc-rest');
+      if (isToday) div.classList.add('fc-today');
+
+      div.innerHTML = `
+        <div class="fcd-dow">${dows[d.getDay()]}</div>
+        <div class="fcd-num">${d.getDate()}</div>
+        <div class="fcd-tag">${isDone ? '✓' : isWorkout ? '운동' : '·'}</div>
+      `;
+      daysDiv.appendChild(div);
+    }
+    weekDiv.appendChild(daysDiv);
+    body.appendChild(weekDiv);
+  }
+}
+
+function toggleCalendar(header) {
+  const body = document.getElementById('full-cal-body');
+  const arrow = document.getElementById('cal-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+/* ── DAY TABS ── */
+function renderDayTabs() {
+  const tabs = document.getElementById('day-tabs');
+  tabs.innerHTML = '';
+  for (let d = 1; d <= 3; d++) {
+    const si = (state.week - 1) * 3 + (d - 1);
+    const dateStr = state.workoutDays[si] || '—';
+    const isDone = state.completedDays.includes(dateStr);
+    const isActive = d === state.workoutDay;
+    const div = document.createElement('div');
+    div.className = 'day-tab' + (isActive ? ' active' : '') + (isDone ? ' completed' : '');
+    div.innerHTML = `
+      <div class="dt-label">DAY ${d}</div>
+      <div class="dt-date">${dateStr !== '—' ? formatDate(dateStr) : '—'}</div>
+    `;
+    div.onclick = () => { state.workoutDay = d; state.setsDone = []; saveState(); renderMain(); };
+    tabs.appendChild(div);
+  }
+}
+
+/* ── SET LIST ── */
+function renderSetList() {
+  const plan = PLAN[state.week];
+  const dayPlan = plan.days[state.workoutDay - 1];
+  const lvl = state.initialLevel;
+  document.getElementById('sets-day-label').textContent = `DAY ${state.workoutDay} — WEEK ${state.week}`;
+  document.getElementById('rest-badge').textContent = `세트 간 휴식 ${dayPlan.rest}초`;
+  const list = document.getElementById('set-list');
+  list.innerHTML = '';
+  let totalDoneReps = 0;
+  dayPlan.sets.forEach((setArr, idx) => {
+    const reps = setArr[lvl];
+    const isLast = idx === dayPlan.sets.length - 1;
+    const done = state.setsDone.includes(idx);
+    if (done) totalDoneReps += reps;
+    const isActive = !done && (idx === 0 || state.setsDone.includes(idx - 1));
+    const row = document.createElement('div');
+    row.className = 'set-row' + (done ? ' set-done' : isActive ? ' set-active' : '');
+    row.innerHTML = `
+      <div class="set-num">S${idx+1}</div>
+      <div class="set-info">
+        <div class="set-target">${reps}${isLast?'+':''}<span>회</span></div>
+        <div class="set-sub">${done ? '✓ 완료' : isActive ? '▶ 지금 수행' : '대기 중'}</div>
+      </div>
+      <button class="set-check ${done?'checked':''}" onclick="toggleSet(${idx},${reps},${dayPlan.rest},${dayPlan.sets.length})"></button>
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('stat-total-reps').textContent = totalDoneReps;
+}
+
+/* ── 주차/DAY 설명 ── */
+const WEEK_INFO = {
+  1: {
+    title: '자세 교정 & 적응 주간',
+    desc: '1주차는 푸쉬업 정자세에 익숙해지는 기간입니다. 자세를 바로잡고 똑바로 하는데 집중해서 횟수 하나하나를 제대로 하는데 집중합니다.',
+    tips: ['세트 간 휴식은 60초로 유지하세요', '자세가 흔들리면 횟수보다 자세 우선']
+  },
+  2: {
+    title: '갯수 증가 단계',
+    desc: '2주차는 익숙해진 동작을 바탕으로 슬슬 갯수를 늘려가는 단계입니다. 1주차보다 세트 간 휴식이 늘어나니 충분히 활용하세요.',
+    tips: ['DAY1: 60초 휴식', 'DAY2: 90초 휴식', 'DAY3: 120초 휴식 — 갯수가 늘어난 만큼 충분히 쉬어야 합니다']
+  },
+  3: {
+    title: '본격 강도 상승 구간',
+    desc: '3주차부터는 본격적으로 힘들어지는 구간입니다. 플랜을 수행하는데 실패했다면 직전 DAY 플랜으로 돌아갑니다.',
+    tips: ['플랜 실패 시 직전 DAY를 반복 수행', '통증이 생기면 즉시 휴식 또는 병원 진료 후 재개']
+  },
+  4: {
+    title: '고반복 적응 구간',
+    desc: '4주차는 고반복에 익숙해지는 구간입니다. 3주차와 세트수는 동일하지만 횟수가 많이 늘기 때문에 꽤 힘들게 느껴질 수 있습니다.',
+    tips: ['이 플랜을 난이도3 수준으로 극복하면 연속 40회 이상이 가능한 몸이 됩니다', '절대 자세를 무너뜨리지 마세요']
+  },
+  5: {
+    title: '근육량 폭발 성장 구간',
+    desc: '본격적으로 근육량이 폭발적으로 늘어나는 구간입니다. 운동 볼륨은 늘어나고 휴식시간은 줄어들기 때문에 매우 힘듭니다.',
+    tips: ['DAY2·3는 세트가 8개로 증가합니다', '난이도3 수준으로 극복하면 연속 50개 이상이 가능한 몸이 만들어집니다', '휴식 45초를 철저히 지키세요']
+  },
+  6: {
+    title: '마지막 관문 — 100회 도전 직전',
+    desc: '플랜의 마지막 6주차입니다. 초반 세트는 워밍업 단계로 횟수가 적지만, 후반 세트는 미친듯이 횟수를 치기 때문에 상당한 준비가 필요합니다.',
+    tips: ['DAY2·3 마지막 세트(SET9)가 핵심입니다 — 모든 걸 쏟아내세요', '6주 완료 후 다음 주 첫날 연속 100회 챌린지에 도전하세요!']
+  }
+};
+
+function renderWeekInfo() {
+  const info = WEEK_INFO[state.week];
+  const card = document.getElementById('week-info-card');
+  const tipsHtml = info.tips.map(t => `
+    <div class="wi-tip"><span>▸</span><span>${t}</span></div>
+  `).join('');
+  card.innerHTML = `
+    <div class="wi-week">WEEK ${state.week} / DAY ${state.workoutDay}</div>
+    <div class="wi-title">${info.title}</div>
+    <div class="wi-desc">${info.desc}</div>
+    <div class="wi-tips">${tipsHtml}</div>
+  `;
+}
+
+
+function toggleSet(idx, reps, restSec, totalSets) {
+  if (state.setsDone.includes(idx)) {
+    state.setsDone = state.setsDone.filter(i => i !== idx);
+    saveState(); renderSetList(); return;
+  }
+  state.setsDone.push(idx);
+  saveState();
+  if (state.setsDone.length === totalSets) {
+    clearTimer(); renderSetList(); markDayComplete(); return;
+  }
+  const plan = PLAN[state.week];
+  const dayPlan = plan.days[state.workoutDay - 1];
+  const nextReps = idx + 1 < dayPlan.sets.length ? dayPlan.sets[idx+1][state.initialLevel] : null;
+  startRestTimer(restSec, nextReps ? `${nextReps}회` : '마지막 세트!');
+  renderSetList();
+}
+
+/* ── REST TIMER ── */
+function startRestTimer(sec, nextLabel) {
+  clearTimer();
+  const C = 295.3;
+  const timerEl = document.getElementById('rest-timer');
+  const numEl = document.getElementById('timer-num');
+  const ringEl = document.getElementById('ring-fill');
+  document.getElementById('rest-next-target').textContent = nextLabel;
+  timerEl.classList.add('active');
+  let remaining = sec;
+  function tick() {
+    numEl.textContent = remaining;
+    ringEl.style.strokeDashoffset = C * (1 - remaining / sec);
+    if (remaining <= 0) {
+      clearTimer(); timerEl.classList.remove('active');
+      showToast('✅ 휴식 완료! 다음 세트 시작하세요');
+      if (navigator.vibrate) navigator.vibrate([200,100,200]);
+    } else {
+      remaining--;
+      timerInterval = setTimeout(tick, 1000);
+    }
+  }
+  tick();
+}
+function clearTimer() {
+  if (timerInterval) { clearTimeout(timerInterval); timerInterval = null; }
+  document.getElementById('rest-timer').classList.remove('active');
+}
+function skipRest() { clearTimer(); showToast('휴식 건너뜀'); }
+
+/* ── DAY COMPLETE ── */
+function markDayComplete() {
+  const si = (state.week - 1) * 3 + (state.workoutDay - 1);
+  const dateStr = state.workoutDays[si];
+  if (!state.completedDays.includes(dateStr)) state.completedDays.push(dateStr);
+  const plan = PLAN[state.week];
+  const dayPlan = plan.days[state.workoutDay - 1];
+  const total = dayPlan.sets.reduce((s, arr) => s + arr[state.initialLevel], 0);
+  document.getElementById('complete-total').textContent = total + '+';
+  const msgs = ['','1주차는 자세에 익숙해지는 기간! 잘 하셨습니다 💪','갯수가 조금씩 늘고 있습니다. 계속 유지하세요!','본격적으로 힘들어지는 구간, 포기하지 마세요!','4주차 완료! 40회 연속이 가까워지고 있습니다.','근육이 폭발적으로 성장 중! 50개 연속이 머지않았습니다.','마지막 6주차! 100회 챌린지가 바로 앞에 있습니다 🔥'];
+  document.getElementById('complete-msg').textContent = msgs[state.week] || '훌륭합니다!';
+  advanceSession();
+  saveState();
+  setTimeout(() => showScreen('screen-day-complete'), 300);
+}
+
+function advanceSession() {
+  if (state.workoutDay < 3) { state.workoutDay++; }
+  else if (state.week < 6) { state.week++; state.workoutDay = 1; }
+  state.setsDone = [];
+}
+
+function goToMain() { showScreen('screen-main'); renderMain(); }
+
+/* ── SETTINGS ── */
+function openSettings() {
+  document.getElementById('modal-settings').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('modal-settings').classList.remove('open');
+}
+
+function openSetupModal() {
+  closeSettings();
+  document.getElementById('edit-start-date').value = state.startDate || todayStr();
+  editLevel = state.initialLevel;
+  document.querySelectorAll('#edit-level-grid .level-btn').forEach((b, i) => {
+    b.classList.toggle('selected', i === editLevel);
+  });
+  document.getElementById('modal-setup-edit').classList.add('open');
+}
+function closeSetupModal() {
+  document.getElementById('modal-setup-edit').classList.remove('open');
+}
+function selectEditLevel(lv, el) {
+  document.querySelectorAll('#edit-level-grid .level-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  editLevel = lv;
+}
+function applyEditSettings() {
+  const newDate = document.getElementById('edit-start-date').value;
+  if (!newDate) { showToast('날짜를 선택하세요'); return; }
+  if (editLevel === null) { showToast('레벨을 선택하세요'); return; }
+  state.startDate = newDate;
+  state.initialLevel = editLevel;
+  state.workoutDays = buildSchedule(newDate);
+  state.setsDone = [];
+  saveState();
+  closeSetupModal();
+  showScreen('screen-main');
+  renderMain();
+  showToast('✅ 설정이 변경되었습니다');
+}
+
+function confirmReset() {
+  closeSettings();
+  if (confirm('모든 진행 상황이 초기화됩니다. 계속하시겠습니까?')) {
+    localStorage.removeItem('pushup_state_v2');
+    state = {}; selectedLevel = null;
+    clearTimer();
+    showScreen('screen-setup');
+  }
+}
+
+/* ── UTILS ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ── INIT ── */
+loadState();
+if (state.workoutDays) { showScreen('screen-main'); renderMain(); }
+
+/* ── PWA 서비스워커 등록 ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('push100-sw.js')
+      .then(() => console.log('SW 등록 완료'))
+      .catch(e => console.log('SW 등록 실패', e));
+  });
+}
+</script>
+</body>
+</html>
