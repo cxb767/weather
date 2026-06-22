@@ -328,10 +328,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div class="rs-handle"></div>
     <div class="rs-title">설정</div>
     <div class="rs-item">
-      <div class="rs-item-name">심박수 모니터링</div>
-      <div class="rs-toggle" id="toggle-hr" onclick="toggleHR()"></div>
-    </div>
-    <div class="rs-item">
       <div class="rs-item-name">케이던스 측정</div>
       <div class="rs-toggle on" id="toggle-cad" onclick="toggleCAD()"></div>
     </div>
@@ -738,6 +734,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     </div>
     <div class="hdr-right">
       <span class="tab-badge" id="b-chat"></span>
+      <button class="icon-btn" onclick="togglePeerHistory()" title="상대방 기록">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </button>
       <button class="icon-btn" onclick="confirmEmergency()" title="전체삭제">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
@@ -757,13 +756,15 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <div class="idle-bar-wrap"><div class="idle-bar" id="idle-bar"></div></div>
   <div class="tabs"></div>
 
-  <!-- 상대방 운동 기록 히스토리 -->
-  <div id="peer-run-status" style="display:none;flex-direction:column;background:#111;border-bottom:1px solid #1e1e1e;max-height:180px;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px;">
-      <div style="font-size:12px;color:#555;letter-spacing:1px;">상대방 운동 기록</div>
-      <button onclick="lockPeerView()" style="background:none;border:none;color:#444;cursor:pointer;font-size:12px;">닫기</button>
+  <!-- 상대방 운동 기록 팝업 -->
+  <div id="peer-history-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);" onclick="if(event.target===this)togglePeerHistory()">
+    <div style="background:#141414;border-radius:20px 20px 0 0;width:100%;max-height:60vh;overflow-y:auto;padding:20px 16px 32px;border-top:1px solid #222;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:15px;font-weight:600;color:#e0e0e0;">상대방 운동 기록</div>
+        <button onclick="togglePeerHistory()" style="background:none;border:none;color:#555;cursor:pointer;font-size:13px;">닫기</button>
+      </div>
+      <div id="peer-history-list"></div>
     </div>
-    <div id="peer-history-list" style="padding:0 16px 10px;"></div>
   </div>
 
   <!-- CHAT PANEL -->
@@ -1245,7 +1246,7 @@ async function forceQuit(){
   try{db.collection('rooms').doc(roomId).collection('presence').doc(myId).delete();}catch{}
   document.getElementById('sch').classList.remove('on');
   weatherLoaded=false;
-  showWeather();
+  document.getElementById('run-screen').classList.add('on');
 }
 
 // PWA
@@ -1430,7 +1431,6 @@ async function enterRoom(){
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
   peerUnlocked=true;
   listenPeerRun();
-  loadPeerHistory();
 }
 
 // PRESENCE
@@ -1701,18 +1701,41 @@ function backToRun(){
 // 달리기 시작/일시정지
 function toggleRun(){
   if(runState==='idle'||runState==='paused'){
-    startRun();
+    if(runState==='idle'){
+      startCountdown();
+    } else {
+      startRun();
+    }
   } else {
     pauseRun();
   }
 }
 
+function startCountdown(){
+  // GPS 미리 시작
+  startGPS();
+  startCadence();
+  const btn=document.getElementById('run-btn-main');
+  let count=3;
+  btn.innerHTML=`<span style="font-size:32px;font-weight:700">${count}</span>`;
+  const iv=setInterval(()=>{
+    count--;
+    if(count>0){
+      btn.innerHTML=`<span style="font-size:32px;font-weight:700">${count}</span>`;
+      if(navigator.vibrate)navigator.vibrate(80);
+    } else {
+      clearInterval(iv);
+      btn.innerHTML='';
+      if(navigator.vibrate)navigator.vibrate([80,40,80]);
+      startRun();
+    }
+  },1000);
+}
+
 function startRun(){
   if(runState==='idle'){
-    runDist=0;runCoords=[];runSplits=[];runElapsed=0;
-    document.getElementById('run-splits-row').innerHTML='<div style="font-size:15px;color:#999;padding:8px;">구간 기록이 여기에 표시돼요</div>';
-    startGPS();
-    startCadence();
+    runDist=0;runCoords=[];runSplits=[];runElapsed=0;recentCoords=[];splitIdx=0;
+    document.getElementById('run-splits-row').innerHTML='<div style="font-size:15px;color:#bbb;padding:8px;font-weight:500;">달리기를 시작하면 구간이 기록돼요</div>';
   }
   runState='running';
   runStartTime=Date.now()-runElapsed;
@@ -1722,7 +1745,6 @@ function startRun(){
   document.getElementById('run-btn-main').classList.add('running');
   document.getElementById('run-btn-stop').style.display='flex';
   document.getElementById('run-btn-map').style.display='none';
-  // Firebase에 달리기 상태 업데이트
   if(db&&roomId) updateRunStatus('running');
 }
 
@@ -1788,18 +1810,17 @@ function startGPS(){
   if(!navigator.geolocation){toast('GPS 불가');return;}
   runWatchId=navigator.geolocation.watchPosition(pos=>{
     const {latitude:lat,longitude:lon,accuracy}=pos.coords;
-    if(accuracy>50)return;
-    const now=Date.now();
-    const coord={lat,lon,t:now};
+    if(accuracy>30)return;
+    const now=Date.now();    const coord={lat,lon,t:now};
     if(lastCoord&&runState==='running'){
       const d=calcDist(lastCoord.lat,lastCoord.lon,lat,lon);
-      if(d>0.002&&d<0.15){
+      if(d>0.001&&d<0.2){
         runDist+=d;
         document.getElementById('run-dist').textContent=runDist.toFixed(2);
         runCoords.push(coord);
         recentCoords.push({lat,lon,t:now,cumDist:runDist});
         // 30초 이상 된 것 제거
-        recentCoords=recentCoords.filter(c=>now-c.t<30000);
+        recentCoords=recentCoords.filter(c=>now-c.t<15000);
         updateRealtimePace();
         checkSplit();
       }
@@ -1809,7 +1830,10 @@ function startGPS(){
     origUpdateMapMarkers();
   },err=>{
     console.warn('GPS 오류:',err.message);
-  },{enableHighAccuracy:true,timeout:10000,maximumAge:2000});
+    if(err.code===1)toast('GPS 권한을 허용해주세요');
+    else if(err.code===2)toast('GPS 신호를 찾는 중...');
+    else toast('GPS 연결 재시도 중...');
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:1000});
 }
 
 function updateRealtimePace(){
@@ -1919,8 +1943,16 @@ async function verifyPeerAuth(){
     document.getElementById('peer-auth-inp').value='';
   }
 }
+function togglePeerHistory(){
+  const popup=document.getElementById('peer-history-popup');
+  const isOpen=popup.style.display==='flex';
+  if(isOpen){popup.style.display='none';return;}
+  popup.style.display='flex';
+  loadPeerHistory();
+}
 function lockPeerView(){
   peerUnlocked=false;
+}
   document.getElementById('peer-run-status').style.display='none';
   if(peerRunListener){peerRunListener();peerRunListener=null;}
 }
@@ -2027,16 +2059,10 @@ function showHistory(){
 }
 function closeHistory(){document.getElementById('hist-popup').style.display='none';}
 
-let useHR=false, useCAD=true, useVIB=true, useVoice=false;
+let useCAD=true, useVIB=true, useVoice=false;
 let splitInterval=1; // km 단위
 function openRunSettings(){document.getElementById('run-settings').classList.add('on');}
 function closeRunSettings(){document.getElementById('run-settings').classList.remove('on');}
-function toggleHR(){
-  useHR=!useHR;
-  const t=document.getElementById('toggle-hr');
-  t.classList.toggle('on',useHR);
-  if(useHR)startHR(); else stopHR();
-}
 function toggleCAD(){
   useCAD=!useCAD;
   document.getElementById('toggle-cad').classList.toggle('on',useCAD);
@@ -2055,37 +2081,6 @@ function setSplitInterval(v){
   document.querySelectorAll('.split-btn').forEach(b=>b.classList.toggle('active',+b.dataset.v===v));
   toast(`구간 ${v>=1?v+'km':v*1000+'m'} 설정`);
   splitIdx=0;
-}
-
-// 심박수 (Web Bluetooth)
-let hrDevice=null,hrChar=null,hrValues=[];
-async function startHR(){
-  if(!navigator.bluetooth){toast('블루투스 미지원');useHR=false;document.getElementById('toggle-hr').classList.remove('on');return;}
-  try{
-    toast('심박계 검색 중...');
-    hrDevice=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}]});
-    const server=await hrDevice.gatt.connect();
-    const svc=await server.getPrimaryService('heart_rate');
-    hrChar=await svc.getCharacteristic('heart_rate_measurement');
-    await hrChar.startNotifications();
-    hrChar.addEventListener('characteristicvaluechanged',e=>{
-      const v=e.target.value;
-      const hr=(v.getUint8(0)&0x1)?v.getUint16(1,true):v.getUint8(1);
-      document.getElementById('run-hr').textContent=hr;
-      hrValues.push(hr);
-    });
-    toast('심박계 연결됨 ❤️');
-  }catch(e){
-    toast('심박계 연결 실패');
-    useHR=false;
-    document.getElementById('toggle-hr').classList.remove('on');
-  }
-}
-function stopHR(){
-  if(hrChar)hrChar.stopNotifications().catch(()=>{});
-  if(hrDevice&&hrDevice.gatt.connected)hrDevice.gatt.disconnect();
-  document.getElementById('run-hr').textContent='--';
-  hrValues=[];
 }
 
 // 지도
