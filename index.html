@@ -7,8 +7,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b2a">
-<title>날씨</title>
-<link rel="manifest" href="/weather/manifest.json">
+<title>Running</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="manifest" href="/running/manifest.json">
 <style>
 :root{
   --bg:#050505;
@@ -193,6 +195,93 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 
 /* Long press hint */
 .lp-hint{font-size:10px;color:var(--text3);text-align:center;padding:4px 0 2px;opacity:.6;}
+
+/* 지도 */
+#run-map{position:fixed;inset:0;z-index:7;display:none;}
+#run-map.on{display:block;}
+.map-back-btn{position:fixed;top:max(20px,env(safe-area-inset-top));left:16px;z-index:8;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:42px;height:42px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.map-stats-overlay{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:8;background:rgba(0,0,0,0.8);border-radius:20px;padding:14px 24px;display:flex;gap:24px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);}
+.map-stat{text-align:center;}
+.map-stat-val{font-size:20px;font-weight:600;color:#fff;}
+.map-stat-lbl{font-size:11px;color:#888;margin-top:2px;}
+
+/* 달리기 설정 시트 */
+#run-settings{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:50;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+#run-settings.on{display:flex;}
+.run-settings-sheet{background:#141414;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:500px;padding-bottom:max(24px,env(safe-area-inset-bottom));border-top:1px solid #222;}
+.rs-handle{width:36px;height:3px;background:#333;border-radius:2px;margin:0 auto 20px;}
+.rs-title{font-size:18px;font-weight:700;color:#e0e0e0;margin-bottom:20px;}
+.rs-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1e1e1e;}
+.rs-item-name{font-size:15px;color:#c0c0c0;}
+.rs-item-val{font-size:14px;color:#888;}
+.rs-toggle{width:46px;height:26px;background:#333;border-radius:13px;position:relative;cursor:pointer;transition:background .2s;}
+.rs-toggle.on{background:#cc7c3a;}
+.rs-toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s;}
+.rs-toggle.on::after{transform:translateX(20px);}
+
+/* 결과 카드 */
+#result-card{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;padding:24px;}
+#result-card.on{display:flex;}
+.rc-box{background:#141414;border-radius:24px;padding:32px 24px;width:100%;max-width:360px;border:1px solid #222;}
+.rc-title{font-size:14px;color:#666;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;text-align:center;}
+.rc-dist{font-size:72px;font-weight:200;color:#fff;text-align:center;line-height:1;letter-spacing:-2px;}
+.rc-dist-unit{font-size:16px;color:#666;text-align:center;margin-bottom:24px;}
+.rc-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.rc-stat{background:#1a1a1a;border-radius:14px;padding:16px;text-align:center;}
+.rc-stat-val{font-size:24px;font-weight:600;color:#e0e0e0;}
+.rc-stat-lbl{font-size:11px;color:#555;margin-top:4px;text-transform:uppercase;letter-spacing:1px;}
+.rc-btns{display:flex;gap:10px;}
+.rc-btn{flex:1;padding:14px;border-radius:14px;border:none;font-size:14px;font-weight:600;cursor:pointer;}
+.rc-btn-close{background:#222;color:#888;}
+.rc-btn-save{background:#cc7c3a;color:#fff;}
+
+/* ===== RUNNING ===== */
+#run-screen{position:fixed;inset:0;display:none;flex-direction:column;background:#0a0a0a;z-index:6;}
+#run-screen.on{display:flex;}
+
+.run-hdr{display:flex;align-items:center;justify-content:space-between;padding:max(16px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;}
+.run-weather-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:6px 12px;cursor:pointer;}
+.run-weather-ic{font-size:18px;}
+.run-weather-tmp{font-size:14px;font-weight:600;color:#fff;}
+.run-weather-desc{font-size:11px;color:#aaa;}
+.run-hdr-right{display:flex;gap:8px;}
+.run-icon-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#aaa;}
+
+/* 메인 스탯 */
+.run-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0 24px;}
+.run-dist{font-size:100px;font-weight:500;color:#fff;line-height:1;letter-spacing:-3px;}
+.run-dist-unit{font-size:18px;color:#888;margin-top:-4px;font-weight:300;}
+.run-stats-row{display:flex;width:100%;justify-content:space-around;margin-top:28px;gap:8px;}
+.run-stat{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:24px 8px;}
+.run-stat-val{font-size:36px;font-weight:600;color:#ffffff;letter-spacing:-1px;}
+.run-stat-lbl{font-size:14px;color:#ccc;text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+
+/* 구간 정보 */
+.run-splits{padding:0 18px;margin-top:16px;flex-shrink:0;}
+.run-splits-title{font-size:15px;color:#ccc;letter-spacing:1px;margin-bottom:10px;font-weight:600;}
+.run-splits-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+.run-splits-row::-webkit-scrollbar{display:none;}
+.run-split-chip{flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px 12px;text-align:center;}
+.run-split-dist{font-size:14px;color:#bbb;margin-bottom:4px;}
+.run-split-pace{font-size:18px;font-weight:600;color:#fff;}
+
+/* 컨트롤 */
+.run-ctrl{padding:20px 24px;padding-bottom:max(28px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;}
+.run-btn-start{width:80px;height:80px;border-radius:50%;border:none;background:#fff;color:#0a0a0a;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.run-btn-start.running{background:#c0392b;}
+.run-btn-start svg{width:28px;height:28px;}
+.run-btn-sec{width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#888;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.run-btn-sec svg{width:20px;height:20px;}
+
+/* 상대방 상태 (인증 후) */
+.peer-run-status{margin:0 18px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px 16px;display:none;align-items:center;gap:12px;}
+.peer-run-dot{width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;}
+.peer-run-dot.active{background:#cc7c3a;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.peer-run-info{flex:1;}
+.peer-run-name{font-size:13px;color:#888;margin-bottom:2px;}
+.peer-run-detail{font-size:12px;color:#444;}
+.peer-run-lock{background:none;border:none;color:#333;cursor:pointer;font-size:13px;padding:4px 8px;}
 </style>
 </head>
 <body>
@@ -220,6 +309,172 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   </div>
 </div>
 
+<!-- 지도 화면 -->
+<div id="run-map">
+  <button class="map-back-btn" onclick="toggleMap()">←</button>
+  <div id="leaflet-map" style="width:100%;height:100%;"></div>
+  <div class="map-stats-overlay">
+    <div class="map-stat"><div class="map-stat-val" id="map-dist">0.00</div><div class="map-stat-lbl">km</div></div>
+    <div class="map-stat"><div class="map-stat-val" id="map-pace">--'--"</div><div class="map-stat-lbl">페이스</div></div>
+    <div class="map-stat"><div class="map-stat-val" id="map-time">00:00</div><div class="map-stat-lbl">시간</div></div>
+  </div>
+</div>
+
+<!-- 달리기 설정 -->
+<div id="run-settings" onclick="if(event.target===this)closeRunSettings()">
+  <div class="run-settings-sheet">
+    <div class="rs-handle"></div>
+    <div class="rs-title">설정</div>
+    <div class="rs-item">
+      <div class="rs-item-name">심박수 모니터링</div>
+      <div class="rs-toggle" id="toggle-hr" onclick="toggleHR()"></div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-item-name">케이던스 측정</div>
+      <div class="rs-toggle on" id="toggle-cad" onclick="toggleCAD()"></div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-item-name">구간 진동 알림</div>
+      <div class="rs-toggle on" id="toggle-vib" onclick="toggleVIB()"></div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-item-name">GPS 정확도</div>
+      <div class="rs-item-val">고정밀</div>
+    </div>
+  </div>
+</div>
+
+<!-- 완료 결과 카드 -->
+<div id="result-card">
+  <div class="rc-box">
+    <div class="rc-title">달리기 완료 🏃</div>
+    <div class="rc-dist" id="rc-dist">0.00</div>
+    <div class="rc-dist-unit">킬로미터</div>
+    <div class="rc-stats">
+      <div class="rc-stat"><div class="rc-stat-val" id="rc-time">--</div><div class="rc-stat-lbl">시간</div></div>
+      <div class="rc-stat"><div class="rc-stat-val" id="rc-pace">--</div><div class="rc-stat-lbl">평균 페이스</div></div>
+      <div class="rc-stat"><div class="rc-stat-val" id="rc-cad">--</div><div class="rc-stat-lbl">평균 케이던스</div></div>
+      <div class="rc-stat"><div class="rc-stat-val" id="rc-hr">--</div><div class="rc-stat-lbl">평균 심박수</div></div>
+    </div>
+    <div class="rc-btns">
+      <button class="rc-btn rc-btn-close" onclick="closeResultCard()">닫기</button>
+      <button class="rc-btn rc-btn-save" onclick="closeResultCard()">저장 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- RUNNING SCREEN -->
+<div id="run-screen">
+  <!-- 헤더 -->
+  <div class="run-hdr">
+    <button class="run-weather-btn" onclick="showWeatherFromRun()">
+      <span class="run-weather-ic" id="run-wx-ic">🌡️</span>
+      <div>
+        <div class="run-weather-tmp" id="run-wx-tmp">--°</div>
+        <div class="run-weather-desc" id="run-wx-desc">날씨</div>
+      </div>
+    </button>
+    <div class="run-hdr-right">
+      <button class="run-icon-btn" id="run-peer-btn" onclick="showPeerAuth()" title="상대방">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
+      <button class="run-icon-btn" onclick="openRunSettings()" title="설정" style="position:relative;">
+        <svg id="run-settings-ic-single" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg id="run-settings-ic-double" width="24" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 48 32" style="display:none">
+          <g transform="translate(0,2)"><circle cx="10" cy="10" r="3"/><path d="M17 12a1.2 1.2 0 0 0 .25 1.4l.05.05a1.5 1.5 0 0 1-2.12 2.12l-.05-.05A1.2 1.2 0 0 0 13.7 15a1.2 1.2 0 0 0-.75 1.1V17a1.5 1.5 0 0 1-3 0v-.06a1.2 1.2 0 0 0-.78-1.1 1.2 1.2 0 0 0-1.37.24l-.05.05a1.5 1.5 0 0 1-2.12-2.12l.05-.05A1.2 1.2 0 0 0 5.9 12.3a1.2 1.2 0 0 0-1.1-.75H4.5a1.5 1.5 0 0 1 0-3h.06a1.2 1.2 0 0 0 1.1-.78 1.2 1.2 0 0 0-.24-1.37l-.05-.05A1.5 1.5 0 0 1 7.49 4.2l.05.05A1.2 1.2 0 0 0 8.9 4.5a1.2 1.2 0 0 0 .75-1.1V3.2a1.5 1.5 0 0 1 3 0v.06a1.2 1.2 0 0 0 .75 1.1 1.2 1.2 0 0 0 1.37-.24l.05-.05a1.5 1.5 0 0 1 2.12 2.12l-.05.05A1.2 1.2 0 0 0 16.7 7.7a1.2 1.2 0 0 0 1.1.75h.2a1.5 1.5 0 0 1 0 3h-.06a1.2 1.2 0 0 0-1.1.75z"/></g>
+          <g transform="translate(24,10)"><circle cx="10" cy="10" r="3"/><path d="M17 12a1.2 1.2 0 0 0 .25 1.4l.05.05a1.5 1.5 0 0 1-2.12 2.12l-.05-.05A1.2 1.2 0 0 0 13.7 15a1.2 1.2 0 0 0-.75 1.1V17a1.5 1.5 0 0 1-3 0v-.06a1.2 1.2 0 0 0-.78-1.1 1.2 1.2 0 0 0-1.37.24l-.05.05a1.5 1.5 0 0 1-2.12-2.12l.05-.05A1.2 1.2 0 0 0 5.9 12.3a1.2 1.2 0 0 0-1.1-.75H4.5a1.5 1.5 0 0 1 0-3h.06a1.2 1.2 0 0 0 1.1-.78 1.2 1.2 0 0 0-.24-1.37l-.05-.05A1.5 1.5 0 0 1 7.49 4.2l.05.05A1.2 1.2 0 0 0 8.9 4.5a1.2 1.2 0 0 0 .75-1.1V3.2a1.5 1.5 0 0 1 3 0v.06a1.2 1.2 0 0 0 .75 1.1 1.2 1.2 0 0 0 1.37-.24l.05-.05a1.5 1.5 0 0 1 2.12 2.12l-.05.05A1.2 1.2 0 0 0 16.7 7.7a1.2 1.2 0 0 0 1.1.75h.2a1.5 1.5 0 0 1 0 3h-.06a1.2 1.2 0 0 0-1.1.75z"/></g>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 상대방 상태 (인증 후 표시) -->
+  <div class="peer-run-status" id="peer-run-status">
+    <div class="peer-run-dot" id="peer-run-dot"></div>
+    <div class="peer-run-info">
+      <div class="peer-run-name" id="peer-run-name">상대방</div>
+      <div class="peer-run-detail" id="peer-run-detail">오프라인</div>
+    </div>
+    <button class="peer-run-lock" onclick="lockPeerView()">🔒</button>
+  </div>
+
+  <!-- 메인 거리 표시 -->
+  <div class="run-main">
+    <div style="font-size:15px;color:#ccc;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;font-weight:500;">거리 (km)</div>
+    <div class="run-dist" id="run-dist">0.00</div>
+
+    <div class="run-stats-row">
+      <div class="run-stat">
+        <div class="run-stat-val" id="run-time">00:00</div>
+        <div class="run-stat-lbl">시간</div>
+      </div>
+      <div class="run-stat">
+        <div class="run-stat-val" id="run-pace">--'--"</div>
+        <div class="run-stat-lbl">페이스</div>
+      </div>
+      <div class="run-stat">
+        <div class="run-stat-val" id="run-cad">--</div>
+        <div class="run-stat-lbl">케이던스</div>
+      </div>
+      <div class="run-stat">
+        <div class="run-stat-val" id="run-hr">--</div>
+        <div class="run-stat-lbl">심박수</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 구간 기록 -->
+  <div class="run-splits">
+    <div class="run-splits-title">구간 기록</div>
+    <div class="run-splits-row" id="run-splits-row">
+      <div style="font-size:15px;color:#999;padding:8px;">달리기를 시작하면 구간이 기록돼요</div>
+    </div>
+  </div>
+
+  <!-- 컨트롤 버튼 -->
+  <div class="run-ctrl">
+    <button class="run-btn-sec" id="run-btn-hist" onclick="showHistory()" title="기록">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+    </button>
+    <button class="run-btn-start" id="run-btn-main" onclick="toggleRun()">
+      <svg id="run-ic-play" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="run-ic-pause" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="run-btn-sec" id="run-btn-stop" onclick="stopRun()" title="완료" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+    </button>
+    <button class="run-btn-sec" id="run-btn-map" onclick="toggleMap()" title="지도" style="display:block">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6-10l6-3m0 16l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-1.447-.894L15 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- 상대방 인증 팝업 -->
+<div id="peer-auth-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:#141414;border-radius:20px;padding:28px 24px;width:88%;max-width:320px;border:1px solid #222;text-align:center;">
+    <div style="font-size:13px;color:#555;margin-bottom:16px;">상대방 기록을 보려면 인증이 필요해요</div>
+    <input type="password" id="peer-auth-inp" placeholder="암호키 입력" autocomplete="new-password"
+      style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px;color:#e0e0e0;font-size:15px;text-align:center;outline:none;margin-bottom:10px;"
+      onkeydown="if(event.key==='Enter')verifyPeerAuth()">
+    <div id="peer-auth-err" style="font-size:12px;color:#c0392b;min-height:16px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closePeerAuth()" style="flex:1;background:#1a1a1a;color:#888;border:1px solid #222;border-radius:10px;padding:11px;cursor:pointer;">취소</button>
+      <button onclick="verifyPeerAuth()" style="flex:1;background:#cc7c3a;color:#fff;border:none;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 기록 히스토리 팝업 -->
+<div id="hist-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;flex-direction:column;backdrop-filter:blur(6px);">
+  <div style="background:#0f0f0f;border-radius:20px 20px 0 0;position:absolute;bottom:0;left:0;right:0;max-height:75vh;overflow-y:auto;padding:24px 20px;padding-bottom:max(24px,env(safe-area-inset-bottom));">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-size:18px;font-weight:700;color:#e0e0e0;">기록</div>
+      <button onclick="closeHistory()" style="background:none;border:none;color:#555;font-size:16px;cursor:pointer;">✕</button>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
 <!-- 날씨 위장 화면 -->
 <div id="weather-screen" style="display:flex;position:fixed;inset:0;z-index:5;flex-direction:column;overflow:hidden;" id="weather-screen">
   <!-- 동적 배경 -->
@@ -235,7 +490,10 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;" id="w-loc-name">--</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.7);" id="w-time"></div>
       </div>
-      <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">⚙️</button>
+      <div style="display:flex;gap:6px;">
+        <button onclick="backToRun()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+        <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">⚙️</button>
+      </div>
     </div>
 
     <!-- 검색창 (숨김) -->
@@ -1267,9 +1525,9 @@ function listenM(){
         msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
-          // 설정 버튼 톱니 2개로 변경
           document.getElementById('settings-icon-single').style.display='none';
           document.getElementById('settings-icon-double').style.display='block';
+          if(document.getElementById('run-screen').classList.contains('on')) setRunMsgAlert();
           sendWeatherNotif();
         }
       }
@@ -1378,9 +1636,436 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 ['su-c','s-code'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',function(){this.value=this.value.toUpperCase();});});
 
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/weather/sw.js').catch(()=>{});}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/running/sw.js').catch(()=>{});}
 
-window.addEventListener('load',()=>{showWeather();});
+
+// ===== RUNNING =====
+let runState='idle'; // idle, running, paused
+let runStartTime=0, runElapsed=0, runTimer=null;
+let runDist=0, runCoords=[], runSplits=[], runWatchId=null;
+let lastCoord=null, lastStepTime=0, stepCount=0, cadence=0;
+let peerUnlocked=false, peerRunListener=null;
+let runHistory=JSON.parse(localStorage.getItem('run_history')||'[]');
+
+// 앱 시작시 달리기 화면 먼저
+async function initApp(){
+  document.getElementById('run-screen').classList.add('on');
+  loadRunWeather();
+  if(peerUnlocked) listenPeerRun();
+}
+
+// 달리기 화면 날씨 (간단버전)
+async function loadRunWeather(){
+  try{
+    let lat=37.5665,lon=126.9780;
+    try{const p=await new Promise((r,j)=>navigator.geolocation.getCurrentPosition(r,j,{timeout:4000}));lat=p.coords.latitude;lon=p.coords.longitude;}catch{}
+    const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FSeoul`);
+    const d=await res.json();
+    const c=d.current;
+    document.getElementById('run-wx-ic').textContent=WX_ICON[c.weather_code]||'🌡️';
+    document.getElementById('run-wx-tmp').textContent=Math.round(c.temperature_2m)+'°';
+    document.getElementById('run-wx-desc').textContent=WX_DESC[c.weather_code]||'';
+  }catch{}
+}
+
+function showWeatherFromRun(){
+  document.getElementById('run-screen').classList.remove('on');
+  showWeather();
+}
+
+function backToRun(){
+  document.getElementById('weather-screen').style.display='none';
+  document.getElementById('run-screen').classList.add('on');
+}
+
+// 달리기 시작/일시정지
+function toggleRun(){
+  if(runState==='idle'||runState==='paused'){
+    startRun();
+  } else {
+    pauseRun();
+  }
+}
+
+function startRun(){
+  if(runState==='idle'){
+    runDist=0;runCoords=[];runSplits=[];runElapsed=0;
+    document.getElementById('run-splits-row').innerHTML='<div style="font-size:15px;color:#999;padding:8px;">구간 기록이 여기에 표시돼요</div>';
+    startGPS();
+    startCadence();
+  }
+  runState='running';
+  runStartTime=Date.now()-runElapsed;
+  runTimer=setInterval(updateRunUI,1000);
+  document.getElementById('run-ic-play').style.display='none';
+  document.getElementById('run-ic-pause').style.display='block';
+  document.getElementById('run-btn-main').classList.add('running');
+  document.getElementById('run-btn-stop').style.display='flex';
+  document.getElementById('run-btn-map').style.display='none';
+  // Firebase에 달리기 상태 업데이트
+  if(db&&roomId) updateRunStatus('running');
+}
+
+function pauseRun(){
+  runState='paused';
+  runElapsed=Date.now()-runStartTime;
+  clearInterval(runTimer);
+  document.getElementById('run-ic-play').style.display='block';
+  document.getElementById('run-ic-pause').style.display='none';
+  document.getElementById('run-btn-main').classList.remove('running');
+  if(db&&roomId) updateRunStatus('paused');
+}
+
+async function stopRun(){
+  pauseRun();
+  runState='idle';
+  if(runWatchId){navigator.geolocation.clearWatch(runWatchId);runWatchId=null;}
+  stopCadence();
+  document.getElementById('run-btn-stop').style.display='none';
+  document.getElementById('run-btn-map').style.display='block';
+  document.getElementById('run-ic-play').style.display='block';
+  document.getElementById('run-ic-pause').style.display='none';
+  document.getElementById('run-btn-main').classList.remove('running');
+  // 기록 저장
+  if(runDist>0.05){
+    const record={
+      date:new Date().toLocaleDateString('ko-KR'),
+      time:document.getElementById('run-time').textContent,
+      dist:runDist.toFixed(2),
+      pace:document.getElementById('run-pace').textContent,
+      splits:[...runSplits]
+    };
+    runHistory.unshift(record);
+    if(runHistory.length>50)runHistory=runHistory.slice(0,50);
+    localStorage.setItem('run_history',JSON.stringify(runHistory));
+    toast('기록 저장됨 🏃'); setTimeout(showResultCard,500);
+  }
+  if(db&&roomId) updateRunStatus('idle');
+}
+
+function updateRunUI(){
+  runElapsed=Date.now()-runStartTime;
+  const s=Math.floor(runElapsed/1000);
+  const m=Math.floor(s/60);
+  const h=Math.floor(m/60);
+  const timeStr=h>0?`${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  document.getElementById('run-time').textContent=timeStr;
+  // 페이스
+  if(runDist>0.01&&s>0){
+    const paceSecPerKm=s/runDist;
+    const pm=Math.floor(paceSecPerKm/60);
+    const ps=Math.floor(paceSecPerKm%60);
+    document.getElementById('run-pace').textContent=`${pm}'${String(ps).padStart(2,'0')}"`;
+  }
+  document.getElementById('run-cad').textContent=cadence||'--';
+}
+
+// GPS
+function startGPS(){
+  if(!navigator.geolocation){toast('GPS 불가');return;}
+  runWatchId=navigator.geolocation.watchPosition(pos=>{
+    const {latitude:lat,longitude:lon,accuracy}=pos.coords;
+    if(accuracy>30)return;
+    const coord={lat,lon,t:Date.now()};
+    if(lastCoord&&runState==='running'){
+      const d=calcDist(lastCoord.lat,lastCoord.lon,lat,lon);
+      if(d>0.003&&d<0.1){
+        runDist+=d;
+        document.getElementById('run-dist').textContent=runDist.toFixed(2);
+        runCoords.push(coord);
+        checkSplit();
+      }
+    }
+    lastCoord=coord;
+    if(db&&roomId&&peerUnlocked) updateMyLocation(lat,lon);
+    origUpdateMapMarkers();
+  },err=>{
+    console.warn('GPS 오류:',err.message);
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:2000});
+}
+
+function calcDist(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// 구간 체크 (100m, 500m, 1km, 2km, 3km, 5km, 10km)
+const SPLIT_MARKS=[0.1,0.5,1,2,3,5,10];
+let splitIdx=0;
+function checkSplit(){
+  if(splitIdx>=SPLIT_MARKS.length)return;
+  if(runDist>=SPLIT_MARKS[splitIdx]){
+    const mark=SPLIT_MARKS[splitIdx];
+    const s=Math.floor(runElapsed/1000);
+    const paceSecPerKm=s/runDist;
+    const pm=Math.floor(paceSecPerKm/60);
+    const ps=Math.floor(paceSecPerKm%60);
+    const label=mark>=1?`${mark}km`:`${mark*1000}m`;
+    addSplitChip(label,`${pm}'${String(ps).padStart(2,'0')}"`);
+    splitIdx++;
+    // 진동
+    if(navigator.vibrate)navigator.vibrate([100,50,100]);
+  }
+}
+function addSplitChip(label,pace){
+  const row=document.getElementById('run-splits-row');
+  if(row.querySelector('div[style]'))row.innerHTML='';
+  const chip=document.createElement('div');
+  chip.className='run-split-chip';
+  chip.innerHTML=`<div class="run-split-dist">${label}</div><div class="run-split-pace">${pace}</div>`;
+  row.appendChild(chip);
+}
+
+// 케이던스 (가속도계)
+let cadIv=null, cadSteps=0;
+function startCadence(){
+  cadSteps=0;
+  if(window.DeviceMotionEvent){
+    window.addEventListener('devicemotion',detectStep);
+    cadIv=setInterval(()=>{cadence=cadSteps*2;cadSteps=0;},30000);
+  }
+}
+function stopCadence(){
+  window.removeEventListener('devicemotion',detectStep);
+  clearInterval(cadIv);cadence=0;
+}
+let lastAcc=0;
+function detectStep(e){
+  const acc=e.accelerationIncludingGravity;
+  if(!acc)return;
+  const mag=Math.sqrt(acc.x**2+acc.y**2+acc.z**2);
+  const now=Date.now();
+  if(mag>13&&lastAcc<13&&now-lastStepTime>250){
+    cadSteps++;lastStepTime=now;
+  }
+  lastAcc=mag;
+}
+
+// 상대방 인증
+function showPeerAuth(){document.getElementById('peer-auth-popup').style.display='flex';}
+function closePeerAuth(){document.getElementById('peer-auth-popup').style.display='none';document.getElementById('peer-auth-inp').value='';}
+async function verifyPeerAuth(){
+  const pw=document.getElementById('peer-auth-inp').value;
+  const e=document.getElementById('peer-auth-err');
+  if(!pw){e.textContent='암호키를 입력하세요';return;}
+  if(pw===secretKey){
+    peerUnlocked=true;
+    closePeerAuth();
+    document.getElementById('peer-run-status').style.display='flex';
+    listenPeerRun();
+    toast('상대방 기록 활성화');
+  } else {
+    e.textContent='암호키가 틀렸어요';
+    document.getElementById('peer-auth-inp').value='';
+  }
+}
+function lockPeerView(){
+  peerUnlocked=false;
+  document.getElementById('peer-run-status').style.display='none';
+  if(peerRunListener){peerRunListener();peerRunListener=null;}
+}
+
+// Firebase 달리기 상태 동기화
+async function updateRunStatus(status){
+  try{
+    await db.collection('rooms').doc(roomId).collection('run_status').doc(myId).set({
+      name:myName,status,dist:runDist.toFixed(2),
+      pace:document.getElementById('run-pace').textContent,
+      time:document.getElementById('run-time').textContent,
+      ts:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch{}
+}
+async function updateMyLocation(lat,lon){
+  try{
+    await db.collection('rooms').doc(roomId).collection('run_status').doc(myId).update({lat,lon});
+  }catch{}
+}
+function listenPeerRun(){
+  if(!db||!roomId)return;
+  if(peerRunListener)peerRunListener();
+  peerRunListener=db.collection('rooms').doc(roomId).collection('run_status').onSnapshot(snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.doc.id===myId)return;
+      const d=ch.doc.data();
+      const dot=document.getElementById('peer-run-dot');
+      const name=document.getElementById('peer-run-name');
+      const detail=document.getElementById('peer-run-detail');
+      name.textContent=d.name||'상대방';
+      if(d.status==='running'){
+        dot.classList.add('active');
+        detail.textContent=`🏃 ${d.dist}km · ${d.pace} · ${d.time}`;
+        // 채팅 배지
+        document.getElementById('run-chat-badge').style.display='block';
+      } else if(d.status==='paused'){
+        dot.classList.remove('active');
+        detail.textContent=`⏸️ 일시정지 · ${d.dist}km`;
+      } else {
+        dot.classList.remove('active');
+        detail.textContent='오프라인';
+      }
+    });
+  });
+}
+
+// 채팅으로 이동 - 날씨 화면에서만 접속 가능
+function goToChat(){
+  // 날씨 화면으로 이동 후 설정버튼 안내
+  document.getElementById('run-screen').classList.remove('on');
+  showWeather();
+  setTimeout(()=>toast('날씨 화면 ⚙️ 버튼으로 채팅 접속'),500);
+}
+
+// 기록 히스토리
+function showHistory(){
+  const popup=document.getElementById('hist-popup');
+  popup.style.display='flex';
+  const list=document.getElementById('hist-list');
+  if(!runHistory.length){list.innerHTML='<div style="color:#333;font-size:14px;text-align:center;padding:20px;">기록이 없어요</div>';return;}
+  list.innerHTML=runHistory.map((r,i)=>`
+    <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+      <div style="font-size:12px;color:#444;margin-bottom:6px;">${r.date}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:28px;font-weight:300;color:#e0e0e0;">${r.dist}<span style="font-size:13px;color:#555;"> km</span></div>
+        <div style="text-align:right;">
+          <div style="font-size:14px;color:#888;">${r.pace} /km</div>
+          <div style="font-size:12px;color:#444;">${r.time}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function closeHistory(){document.getElementById('hist-popup').style.display='none';}
+
+// 달리기 설정
+let useHR=false, useCAD=true, useVIB=true;
+function openRunSettings(){document.getElementById('run-settings').classList.add('on');}
+function closeRunSettings(){document.getElementById('run-settings').classList.remove('on');}
+function toggleHR(){
+  useHR=!useHR;
+  const t=document.getElementById('toggle-hr');
+  t.classList.toggle('on',useHR);
+  if(useHR)startHR(); else stopHR();
+}
+function toggleCAD(){
+  useCAD=!useCAD;
+  document.getElementById('toggle-cad').classList.toggle('on',useCAD);
+}
+function toggleVIB(){
+  useVIB=!useVIB;
+  document.getElementById('toggle-vib').classList.toggle('on',useVIB);
+}
+
+// 심박수 (Web Bluetooth)
+let hrDevice=null,hrChar=null,hrValues=[];
+async function startHR(){
+  if(!navigator.bluetooth){toast('블루투스 미지원');useHR=false;document.getElementById('toggle-hr').classList.remove('on');return;}
+  try{
+    toast('심박계 검색 중...');
+    hrDevice=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}]});
+    const server=await hrDevice.gatt.connect();
+    const svc=await server.getPrimaryService('heart_rate');
+    hrChar=await svc.getCharacteristic('heart_rate_measurement');
+    await hrChar.startNotifications();
+    hrChar.addEventListener('characteristicvaluechanged',e=>{
+      const v=e.target.value;
+      const hr=(v.getUint8(0)&0x1)?v.getUint16(1,true):v.getUint8(1);
+      document.getElementById('run-hr').textContent=hr;
+      hrValues.push(hr);
+    });
+    toast('심박계 연결됨 ❤️');
+  }catch(e){
+    toast('심박계 연결 실패');
+    useHR=false;
+    document.getElementById('toggle-hr').classList.remove('on');
+  }
+}
+function stopHR(){
+  if(hrChar)hrChar.stopNotifications().catch(()=>{});
+  if(hrDevice&&hrDevice.gatt.connected)hrDevice.gatt.disconnect();
+  document.getElementById('run-hr').textContent='--';
+  hrValues=[];
+}
+
+// 지도
+let leafletMap=null,myMarker=null,peerMarker=null,routeLine=null;
+function toggleMap(){
+  const mapDiv=document.getElementById('run-map');
+  if(mapDiv.classList.contains('on')){
+    mapDiv.classList.remove('on');
+    return;
+  }
+  mapDiv.classList.add('on');
+  if(!leafletMap){
+    leafletMap=L.map('leaflet-map',{zoomControl:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM'}).addTo(leafletMap);
+    L.control.zoom({position:'topright'}).addTo(leafletMap);
+  }
+  // 현재 위치로 이동
+  if(lastCoord){
+    leafletMap.setView([lastCoord.lat,lastCoord.lon],16);
+    updateMapMarkers();
+  } else {
+    navigator.geolocation.getCurrentPosition(p=>{
+      leafletMap.setView([p.coords.latitude,p.coords.longitude],16);
+    },()=>{},{timeout:5000});
+  }
+  // 경로 그리기
+  drawRoute();
+  // 오버레이 업데이트
+  document.getElementById('map-dist').textContent=runDist.toFixed(2);
+  document.getElementById('map-pace').textContent=document.getElementById('run-pace').textContent;
+  document.getElementById('map-time').textContent=document.getElementById('run-time').textContent;
+}
+function updateMapMarkers(){
+  if(!leafletMap||!lastCoord)return;
+  const myIcon=L.divIcon({html:'<div style="width:16px;height:16px;background:#fff;border:3px solid #000;border-radius:50%;"></div>',iconSize:[16,16],className:''});
+  if(myMarker)myMarker.setLatLng([lastCoord.lat,lastCoord.lon]);
+  else myMarker=L.marker([lastCoord.lat,lastCoord.lon],{icon:myIcon}).addTo(leafletMap);
+}
+function drawRoute(){
+  if(!leafletMap||runCoords.length<2)return;
+  const pts=runCoords.map(c=>[c.lat,c.lon]);
+  if(routeLine)routeLine.setLatLngs(pts);
+  else routeLine=L.polyline(pts,{color:'#cc7c3a',weight:4,opacity:0.8}).addTo(leafletMap);
+}
+
+// GPS 위치 업데이트 시 지도도 갱신
+const origUpdateMapMarkers=()=>{
+  if(document.getElementById('run-map').classList.contains('on')){
+    updateMapMarkers();
+    drawRoute();
+    document.getElementById('map-dist').textContent=runDist.toFixed(2);
+    document.getElementById('map-pace').textContent=document.getElementById('run-pace').textContent;
+    document.getElementById('map-time').textContent=document.getElementById('run-time').textContent;
+  }
+};
+
+// 결과 카드
+function showResultCard(){
+  const avgHr=hrValues.length?Math.round(hrValues.reduce((a,b)=>a+b,0)/hrValues.length):null;
+  document.getElementById('rc-dist').textContent=runDist.toFixed(2);
+  document.getElementById('rc-time').textContent=document.getElementById('run-time').textContent;
+  document.getElementById('rc-pace').textContent=document.getElementById('run-pace').textContent;
+  document.getElementById('rc-cad').textContent=cadence||'--';
+  document.getElementById('rc-hr').textContent=avgHr||'--';
+  document.getElementById('result-card').classList.add('on');
+}
+function closeResultCard(){document.getElementById('result-card').classList.remove('on');}
+
+// 새 메시지 시 설정 아이콘 2개로
+function setRunMsgAlert(){
+  document.getElementById('run-settings-ic-single').style.display='none';
+  document.getElementById('run-settings-ic-double').style.display='block';
+}
+
+// splitIdx 초기화
+function resetSplitIdx(){splitIdx=0;}
+
+window.addEventListener('load',()=>{initApp();});
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
