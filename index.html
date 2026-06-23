@@ -1712,9 +1712,11 @@ function toggleRun(){
 }
 
 function startCountdown(){
-  // GPS 미리 시작
+  // GPS + 케이던스 미리 시작 (워밍업)
   startGPS();
   startCadence();
+  // GPS 워밍업 토스트
+  toast('GPS 준비 중...');
   const btn=document.getElementById('run-btn-main');
   let count=3;
   btn.innerHTML=`<span style="font-size:32px;font-weight:700">${count}</span>`;
@@ -1810,7 +1812,10 @@ function startGPS(){
   if(!navigator.geolocation){toast('GPS 불가');return;}
   runWatchId=navigator.geolocation.watchPosition(pos=>{
     const {latitude:lat,longitude:lon,accuracy}=pos.coords;
-    if(accuracy>30)return;
+    // 초기 30초는 80m까지 허용, 이후 30m로 조임
+    const elapsed=(Date.now()-runStartTime)/1000;
+    const accLimit=elapsed<30?80:30;
+    if(accuracy>accLimit)return;
     const now=Date.now();    const coord={lat,lon,t:now};
     if(lastCoord&&runState==='running'){
       const d=calcDist(lastCoord.lat,lastCoord.lon,lat,lon);
