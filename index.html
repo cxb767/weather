@@ -10,7 +10,7 @@
 <title>Running</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="manifest" href="/running/manifest.json">
+<link rel="manifest" href="/weather/manifest.json">
 <style>
 :root{
   --bg:#050505;
@@ -1679,7 +1679,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 ['su-c','s-code'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',function(){this.value=this.value.toUpperCase();});});
 
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/running/sw.js').catch(()=>{});}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/weather/sw.js').catch(()=>{});}
 
 
 // ===== RUNNING =====
