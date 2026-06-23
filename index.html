@@ -323,6 +323,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 <!-- 지도 화면 -->
 <div id="run-map">
   <button class="map-back-btn" onclick="toggleMap();document.getElementById('run-screen').classList.add('on')">←</button>
+  <button id="map-layer-btn" onclick="toggleMapLayer()" style="position:fixed;top:max(20px,env(safe-area-inset-top));right:16px;z-index:100;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:42px;height:42px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);">🛰️</button>
   <div id="leaflet-map"></div>
   <div class="map-stats-overlay">
     <div class="map-stat"><div class="map-stat-val" id="map-dist">0.00</div><div class="map-stat-lbl">km</div></div>
@@ -1794,6 +1795,8 @@ function startRun(){
   document.getElementById('run-btn-stop').style.display='flex';
   document.getElementById('run-btn-map').style.display='none';
   if(db&&roomId) updateRunStatus('running');
+  // 지도 미리 로드
+  setTimeout(preloadMap, 2000);
 }
 
 function pauseRun(){
@@ -2135,7 +2138,46 @@ function setSplitInterval(v){
 }
 
 // 지도
-let leafletMap=null,myMarker=null,peerMarker=null,routeLine=null;
+let leafletMap=null, myMarker=null, peerMarker=null, routeLine=null;
+let mapLayer=null, satLayer=null, isSatellite=false;
+
+// 달리기 시작 시 미리 지도 초기화
+function preloadMap(){
+  if(leafletMap)return;
+  const mapDiv=document.getElementById('run-map');
+  mapDiv.style.visibility='hidden';
+  mapDiv.classList.add('on');
+  initLeaflet();
+  setTimeout(()=>{
+    leafletMap.invalidateSize();
+    mapDiv.classList.remove('on');
+    mapDiv.style.visibility='';
+  },1500);
+}
+
+function initLeaflet(){
+  if(leafletMap)return;
+  leafletMap=L.map('leaflet-map',{zoomControl:false});
+  mapLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM',maxZoom:19});
+  satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'©Esri',maxZoom:19});
+  mapLayer.addTo(leafletMap);
+  L.control.zoom({position:'topright'}).addTo(leafletMap);
+}
+
+function toggleMapLayer(){
+  if(!leafletMap)return;
+  isSatellite=!isSatellite;
+  if(isSatellite){
+    leafletMap.removeLayer(mapLayer);
+    satLayer.addTo(leafletMap);
+    document.getElementById('map-layer-btn').textContent='🗺️';
+  } else {
+    leafletMap.removeLayer(satLayer);
+    mapLayer.addTo(leafletMap);
+    document.getElementById('map-layer-btn').textContent='🛰️';
+  }
+}
+
 function toggleMap(){
   const mapDiv=document.getElementById('run-map');
   if(mapDiv.classList.contains('on')){
@@ -2143,13 +2185,8 @@ function toggleMap(){
     return;
   }
   mapDiv.classList.add('on');
-  if(!leafletMap){
-    leafletMap=L.map('leaflet-map',{zoomControl:false});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM'}).addTo(leafletMap);
-    L.control.zoom({position:'topright'}).addTo(leafletMap);
-  }
+  initLeaflet();
   setTimeout(()=>leafletMap.invalidateSize(),100);
-  // 현재 위치로 이동
   if(lastCoord){
     leafletMap.setView([lastCoord.lat,lastCoord.lon],16);
     updateMapMarkers();
