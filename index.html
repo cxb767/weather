@@ -439,9 +439,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <!-- 구간 기록 -->
   <div class="run-splits">
     <div class="run-splits-title">구간 기록</div>
-    <div class="run-splits-row" id="run-splits-row">
-      <div style="font-size:17px;color:#bbb;padding:8px;font-weight:500;">달리기를 시작하면 구간이 기록돼요</div>
-    </div>
+    <div class="run-splits-row" id="run-splits-row"></div>
   </div>
 
   <!-- 컨트롤 버튼 -->
@@ -1774,7 +1772,7 @@ function startCountdown(){
       if(navigator.vibrate)navigator.vibrate(80);
     } else {
       clearInterval(iv);
-      btn.innerHTML=`<svg id="run-ic-play" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M8 5v14l11-7z"/></svg><svg id="run-ic-pause" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+      btn.innerHTML=`<svg id="run-ic-play" fill="currentColor" viewBox="0 0 24 24" style="display:none;width:28px;height:28px"><path d="M8 5v14l11-7z"/></svg><svg id="run-ic-pause" fill="currentColor" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
       if(navigator.vibrate)navigator.vibrate([80,40,80]);
       startRun();
     }
@@ -1819,6 +1817,7 @@ async function stopRun(){
   document.getElementById('run-ic-play').style.display='block';
   document.getElementById('run-ic-pause').style.display='none';
   document.getElementById('run-btn-main').classList.remove('running');
+  document.getElementById('run-btn-main').style.background='#fff';
   // 기록 저장
   if(runDist>0.05){
     const record={
@@ -1898,7 +1897,7 @@ function startGPS(){
     if(err.code===1)toast('GPS 권한을 허용해주세요');
     else if(err.code===2)toast('GPS 신호를 찾는 중...');
     else toast('GPS 연결 재시도 중...');
-  },{enableHighAccuracy:true,timeout:10000,maximumAge:1000});
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
 
 function updateRealtimePace(){
