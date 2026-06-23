@@ -1,11 +1,11 @@
 {
-  "name": "날씨",
-  "short_name": "날씨",
+  "name": "Running",
+  "short_name": "Running",
   "start_url": "/weather/",
   "scope": "/weather/",
   "display": "standalone",
-  "background_color": "#0a1628",
-  "theme_color": "#0a1628",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "orientation": "portrait",
   "icons": [
     {
