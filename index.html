@@ -488,7 +488,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 </div>
 
 <!-- 날씨 위장 화면 -->
-<div id="weather-screen" style="display:flex;position:fixed;inset:0;z-index:5;flex-direction:column;overflow:hidden;" id="weather-screen">
+<div id="weather-screen" style="display:none;position:fixed;inset:0;z-index:5;flex-direction:column;overflow:hidden;">
   <!-- 동적 배경 -->
   <div id="w-bg" style="position:absolute;inset:0;background:#0a1628;z-index:0;transition:background 1s;"></div>
   <!-- 태양/구름 장식 -->
@@ -1692,7 +1692,6 @@ let runHistory=JSON.parse(localStorage.getItem('run_history')||'[]');
 async function initApp(){
   document.getElementById('run-screen').classList.add('on');
   loadRunWeather();
-  if(peerUnlocked) listenPeerRun();
 }
 
 // 달리기 화면 날씨 - 저장 지역 우선, 없으면 IP 기반
