@@ -1034,7 +1034,7 @@ async function loadMainWeather(lat,lon,locName){
   document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>';
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
-  if(!d)return;
+  if(!d){document.getElementById('w-desc-top').textContent='날씨 로드 실패';return;}
   const c=d.current,daily=d.daily,code=c.weather_code;
   setBg(code);
   document.getElementById('w-desc-top').textContent=WX_DESC[code]||'';
