@@ -1007,10 +1007,10 @@ async function loadMainWeather(lat,lon,locName){
     } else {
       // IP 기반으로 빠르게
       try{
-        const ipRes=await fetch('http://ip-api.com/json/?fields=lat,lon,city');
+        const ipRes=await fetch('https://freeipapi.com/api/json');
         const ipData=await ipRes.json();
-        lat=ipData.lat; lon=ipData.lon;
-        locName=ipData.city||'내 위치';
+        lat=ipData.latitude; lon=ipData.longitude;
+        locName=ipData.cityName||'내 위치';
         localStorage.setItem('wx_location',JSON.stringify({lat,lon,name:locName}));
       }catch{lat=37.5665;lon=126.9780;locName='서울';}
     }
@@ -1705,10 +1705,10 @@ async function loadRunWeather(){
     }
     if(!lat){
       try{
-        const ipRes=await fetch('http://ip-api.com/json/?fields=lat,lon,city');
+        const ipRes=await fetch('https://freeipapi.com/api/json');
         const ipData=await ipRes.json();
-        lat=ipData.lat; lon=ipData.lon;
-        localStorage.setItem('wx_location',JSON.stringify({lat,lon,name:ipData.city||'내 위치'}));
+        lat=ipData.latitude; lon=ipData.longitude;
+        localStorage.setItem('wx_location',JSON.stringify({lat,lon,name:ipData.cityName||'내 위치'}));
       }catch{lat=37.5665;lon=126.9780;}
     }
     const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FSeoul`);
