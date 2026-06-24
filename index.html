@@ -1010,18 +1010,25 @@ function setBg(code){
 
 async function loadMainWeather(lat,lon,locName){
   if(!lat){
-    lat=37.5665;lon=126.9780;locName='서울';
-    try{
-      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
-      lat=pos.coords.latitude;lon=pos.coords.longitude;
+    // 저장된 위치 있으면 사용, 없으면 서울 기본값
+    const saved=localStorage.getItem('wx_location');
+    if(saved){const loc=JSON.parse(saved);lat=loc.lat;lon=loc.lon;locName=loc.name||'내 위치';}
+    else{lat=37.5665;lon=126.9780;locName='서울';}
+    // GPS 백그라운드에서 처리 (기다리지 않음)
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const {latitude,longitude}=pos.coords;
       try{
-        const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`);
+        const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ko`);
         const gd=await gr.json();
         const addr=gd.address;
-        locName=addr?.village||addr?.suburb||addr?.neighbourhood||addr?.quarter||addr?.city_district||addr?.town||addr?.city||addr?.county||'내 위치';
-      }catch{}
-    }catch{}
-    localStorage.setItem('wx_location',JSON.stringify({lat,lon,name:locName}));
+        const name=addr?.village||addr?.suburb||addr?.neighbourhood||addr?.quarter||addr?.city_district||addr?.town||addr?.city||addr?.county||'내 위치';
+        localStorage.setItem('wx_location',JSON.stringify({lat:latitude,lon:longitude,name}));
+        // GPS 위치로 날씨 다시 로드
+        loadMainWeather(latitude,longitude,name);
+      }catch{
+        localStorage.setItem('wx_location',JSON.stringify({lat:latitude,lon:longitude,name:'내 위치'}));
+      }
+    },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:300000});
   }
   // 지역명 표시 (지도 핀 아이콘 포함)
   document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>';
