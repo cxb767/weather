@@ -1204,9 +1204,8 @@ async function devAuth(){
   if(stored&&await hPw(pw)!==stored){e.textContent='인증 실패';document.getElementById('dev-pw-inp').value='';return;}
   closeDevMenu();
   document.getElementById('weather-screen').style.display='none';
-  // 잠금화면 없이 바로 진입
+  document.getElementById('run-screen').classList.remove('on');
   if(!stored){
-    // 비번 미설정 시 설정 화면으로
     document.getElementById('sl').classList.add('on');
     return;
   }
