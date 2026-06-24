@@ -1448,7 +1448,8 @@ async function enterRoom(){
     if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
   }catch(e){console.error(e);}
   document.getElementById('sch').classList.remove('on');
-  document.getElementById('run-screen').classList.add('on');
+  document.getElementById('run-screen').classList.remove('on');
+  document.getElementById('sch').classList.add('on');
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
   peerUnlocked=true;
   listenPeerRun();
