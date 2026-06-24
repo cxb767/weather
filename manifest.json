@@ -1,6 +1,6 @@
 {
-  "name": "Running",
-  "short_name": "Running",
+  "name": "날씨",
+  "short_name": "날씨",
   "start_url": "/weather/",
   "scope": "/weather/",
   "display": "standalone",

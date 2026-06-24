@@ -7,9 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b2a">
-<title>Running</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>날씨</title>
 <link rel="manifest" href="/weather/manifest.json">
 <style>
 :root{
@@ -320,184 +318,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   </div>
 </div>
 
-<!-- 지도 화면 -->
-<div id="run-map">
-  <button class="map-back-btn" onclick="toggleMap();document.getElementById('run-screen').classList.add('on')">←</button>
-  <button id="map-layer-btn" onclick="toggleMapLayer()" style="position:fixed;top:max(20px,env(safe-area-inset-top));right:16px;z-index:100;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:42px;height:42px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);">🛰️</button>
-  <div id="leaflet-map"></div>
-  <div class="map-stats-overlay">
-    <div class="map-stat"><div class="map-stat-val" id="map-dist">0.00</div><div class="map-stat-lbl">km</div></div>
-    <div class="map-stat"><div class="map-stat-val" id="map-pace">--'--"</div><div class="map-stat-lbl">페이스</div></div>
-    <div class="map-stat"><div class="map-stat-val" id="map-time">00:00</div><div class="map-stat-lbl">시간</div></div>
-  </div>
-</div>
-
-<!-- 달리기 설정 -->
-<div id="run-settings" onclick="if(event.target===this)closeRunSettings()">
-  <div class="run-settings-sheet">
-    <div class="rs-handle"></div>
-    <div class="rs-title">설정</div>
-    <div class="rs-item">
-      <div class="rs-item-name">케이던스 측정</div>
-      <div class="rs-toggle on" id="toggle-cad" onclick="toggleCAD()"></div>
-    </div>
-    <div class="rs-item">
-      <div class="rs-item-name">구간 진동 알림</div>
-      <div class="rs-toggle on" id="toggle-vib" onclick="toggleVIB()"></div>
-    </div>
-    <div class="rs-item">
-      <div class="rs-item-name">구간 음성 안내</div>
-      <div class="rs-toggle" id="toggle-voice" onclick="toggleVoice()"></div>
-    </div>
-    <div class="rs-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
-      <div class="rs-item-name">구간 알림 간격</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="split-btn" data-v="0.1" onclick="setSplitInterval(0.1)">100m</button>
-        <button class="split-btn" data-v="0.2" onclick="setSplitInterval(0.2)">200m</button>
-        <button class="split-btn" data-v="0.5" onclick="setSplitInterval(0.5)">500m</button>
-        <button class="split-btn active" data-v="1" onclick="setSplitInterval(1)">1km</button>
-        <button class="split-btn" data-v="5" onclick="setSplitInterval(5)">5km</button>
-        <button class="split-btn" data-v="10" onclick="setSplitInterval(10)">10km</button>
-      </div>
-    </div>
-    <div class="rs-item">
-      <div class="rs-item-name">GPS 정확도</div>
-      <div class="rs-item-val">고정밀</div>
-    </div>
-  </div>
-</div>
-
-<!-- 완료 결과 카드 -->
-<div id="result-card">
-  <div class="rc-box">
-    <div class="rc-title">달리기 완료 🏃</div>
-    <div class="rc-dist" id="rc-dist">0.00</div>
-    <div class="rc-dist-unit">킬로미터</div>
-    <div class="rc-stats">
-      <div class="rc-stat"><div class="rc-stat-val" id="rc-time">--</div><div class="rc-stat-lbl">시간</div></div>
-      <div class="rc-stat"><div class="rc-stat-val" id="rc-pace">--</div><div class="rc-stat-lbl">평균 페이스</div></div>
-      <div class="rc-stat"><div class="rc-stat-val" id="rc-cad">--</div><div class="rc-stat-lbl">평균 케이던스</div></div>
-    </div>
-    <div class="rc-btns">
-      <button class="rc-btn rc-btn-close" onclick="closeResultCard()">닫기</button>
-      <button class="rc-btn rc-btn-save" onclick="closeResultCard()">저장 완료</button>
-    </div>
-  </div>
-</div>
-
-<!-- 지역 검색 팝업 -->
-<div id="loc-search-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;" onclick="if(event.target===this)document.getElementById('loc-search-popup').style.display='none'">
-  <div style="background:#141414;border-radius:20px;padding:24px;width:88%;max-width:320px;border:1px solid #222;">
-    <div style="font-size:15px;font-weight:600;color:#e0e0e0;margin-bottom:6px;">지역 설정</div>
-    <div style="font-size:13px;color:#555;margin-bottom:16px;">GPS를 사용할 수 없어요. 지역명을 입력하세요.</div>
-    <input id="loc-search-inp" type="text" placeholder="예: 원주, 강남구, 수원..." style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px;color:#e0e0e0;font-size:15px;outline:none;margin-bottom:8px;" onkeydown="if(event.key==='Enter')searchLocation()">
-    <div id="loc-search-results" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
-    <button onclick="searchLocation()" style="width:100%;background:#cc7c3a;color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;">검색</button>
-  </div>
-</div>
-
-<!-- RUNNING SCREEN -->
-<div id="run-screen">
-  <!-- 헤더 -->
-  <div class="run-hdr">
-    <button class="run-weather-btn" onclick="showWeatherFromRun()">
-      <span class="run-weather-ic" id="run-wx-ic">🌡️</span>
-      <div>
-        <div class="run-weather-tmp" id="run-wx-tmp">--°</div>
-        <div class="run-weather-desc" id="run-wx-desc">지역 설정 필요</div>
-      </div>
-    </button>
-    <div class="run-hdr-right">
-      <button class="run-icon-btn" onclick="openRunSettings()" title="설정" style="position:relative;">
-        <svg id="run-settings-ic-single" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <svg id="run-settings-ic-double" width="24" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 48 32" style="display:none">
-          <g transform="translate(0,2)"><circle cx="10" cy="10" r="3"/><path d="M17 12a1.2 1.2 0 0 0 .25 1.4l.05.05a1.5 1.5 0 0 1-2.12 2.12l-.05-.05A1.2 1.2 0 0 0 13.7 15a1.2 1.2 0 0 0-.75 1.1V17a1.5 1.5 0 0 1-3 0v-.06a1.2 1.2 0 0 0-.78-1.1 1.2 1.2 0 0 0-1.37.24l-.05.05a1.5 1.5 0 0 1-2.12-2.12l.05-.05A1.2 1.2 0 0 0 5.9 12.3a1.2 1.2 0 0 0-1.1-.75H4.5a1.5 1.5 0 0 1 0-3h.06a1.2 1.2 0 0 0 1.1-.78 1.2 1.2 0 0 0-.24-1.37l-.05-.05A1.5 1.5 0 0 1 7.49 4.2l.05.05A1.2 1.2 0 0 0 8.9 4.5a1.2 1.2 0 0 0 .75-1.1V3.2a1.5 1.5 0 0 1 3 0v.06a1.2 1.2 0 0 0 .75 1.1 1.2 1.2 0 0 0 1.37-.24l.05-.05a1.5 1.5 0 0 1 2.12 2.12l-.05.05A1.2 1.2 0 0 0 16.7 7.7a1.2 1.2 0 0 0 1.1.75h.2a1.5 1.5 0 0 1 0 3h-.06a1.2 1.2 0 0 0-1.1.75z"/></g>
-          <g transform="translate(24,10)"><circle cx="10" cy="10" r="3"/><path d="M17 12a1.2 1.2 0 0 0 .25 1.4l.05.05a1.5 1.5 0 0 1-2.12 2.12l-.05-.05A1.2 1.2 0 0 0 13.7 15a1.2 1.2 0 0 0-.75 1.1V17a1.5 1.5 0 0 1-3 0v-.06a1.2 1.2 0 0 0-.78-1.1 1.2 1.2 0 0 0-1.37.24l-.05.05a1.5 1.5 0 0 1-2.12-2.12l.05-.05A1.2 1.2 0 0 0 5.9 12.3a1.2 1.2 0 0 0-1.1-.75H4.5a1.5 1.5 0 0 1 0-3h.06a1.2 1.2 0 0 0 1.1-.78 1.2 1.2 0 0 0-.24-1.37l-.05-.05A1.5 1.5 0 0 1 7.49 4.2l.05.05A1.2 1.2 0 0 0 8.9 4.5a1.2 1.2 0 0 0 .75-1.1V3.2a1.5 1.5 0 0 1 3 0v.06a1.2 1.2 0 0 0 .75 1.1 1.2 1.2 0 0 0 1.37-.24l.05-.05a1.5 1.5 0 0 1 2.12 2.12l-.05.05A1.2 1.2 0 0 0 16.7 7.7a1.2 1.2 0 0 0 1.1.75h.2a1.5 1.5 0 0 1 0 3h-.06a1.2 1.2 0 0 0-1.1.75z"/></g>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- 상대방 실시간 상태 -->
-  <div class="peer-run-status" id="peer-run-status-main" style="display:none;">
-    <div class="peer-run-dot" id="peer-run-dot"></div>
-    <div class="peer-run-info">
-      <div class="peer-run-detail" id="peer-run-detail">오프라인</div>
-    </div>
-  </div>
-
-  <!-- 메인 거리 표시 -->
-  <div class="run-main">
-    <div style="font-size:18px;color:#ddd;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;font-weight:700;">거리 (KM)</div>
-    <div class="run-dist" id="run-dist">0.00</div>
-
-    <div class="run-stats-row">
-      <div class="run-stat">
-        <div class="run-stat-val" id="run-time">00:00</div>
-        <div class="run-stat-lbl">시간</div>
-      </div>
-      <div class="run-stat">
-        <div class="run-stat-val" id="run-pace">--'--"</div>
-        <div class="run-stat-lbl">페이스</div>
-      </div>
-      <div class="run-stat">
-        <div class="run-stat-val" id="run-cad">--</div>
-        <div class="run-stat-lbl">케이던스</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 구간 기록 -->
-  <div class="run-splits">
-    <div class="run-splits-title">구간 기록</div>
-    <div class="run-splits-row" id="run-splits-row"></div>
-  </div>
-
-  <!-- 컨트롤 버튼 -->
-  <div class="run-ctrl">
-    <button class="run-btn-sec" id="run-btn-hist" onclick="showHistory()" title="기록">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-    </button>
-    <button class="run-btn-start" id="run-btn-main" onclick="toggleRun()">
-      <svg id="run-ic-play" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      <svg id="run-ic-pause" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-    </button>
-    <button class="run-btn-sec" id="run-btn-stop" onclick="stopRun()" title="완료" style="display:none">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-    </button>
-    <button class="run-btn-sec" id="run-btn-map" onclick="toggleMap()" title="지도" style="display:block">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6-10l6-3m0 16l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-1.447-.894L15 7"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- 상대방 인증 팝업 -->
-<div id="peer-auth-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
-  <div style="background:#141414;border-radius:20px;padding:28px 24px;width:88%;max-width:320px;border:1px solid #222;text-align:center;">
-    <div style="font-size:15px;font-weight:600;color:#e0e0e0;margin-bottom:8px;">상대방 기록 보기</div>
-    <div style="font-size:13px;color:#555;margin-bottom:16px;">앱 비밀번호를 입력하세요</div>
-    <input type="password" id="peer-auth-inp" placeholder="앱 비밀번호" autocomplete="current-password"
-      style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px;color:#e0e0e0;font-size:15px;text-align:center;outline:none;margin-bottom:10px;"
-      onkeydown="if(event.key==='Enter')verifyPeerAuth()">
-    <div id="peer-auth-err" style="font-size:12px;color:#c0392b;min-height:16px;margin-bottom:10px;"></div>
-    <div style="display:flex;gap:10px;">
-      <button onclick="closePeerAuth()" style="flex:1;background:#1a1a1a;color:#888;border:1px solid #222;border-radius:10px;padding:11px;cursor:pointer;">취소</button>
-      <button onclick="verifyPeerAuth()" style="flex:1;background:#cc7c3a;color:#fff;border:none;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">확인</button>
-    </div>
-  </div>
-</div>
-
-<!-- 기록 히스토리 팝업 -->
-<div id="hist-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;flex-direction:column;backdrop-filter:blur(6px);">
-  <div style="background:#0f0f0f;border-radius:20px 20px 0 0;position:absolute;bottom:0;left:0;right:0;max-height:75vh;overflow-y:auto;padding:24px 20px;padding-bottom:max(24px,env(safe-area-inset-bottom));">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div style="font-size:18px;font-weight:700;color:#e0e0e0;">기록</div>
-      <button onclick="closeHistory()" style="background:none;border:none;color:#555;font-size:16px;cursor:pointer;">✕</button>
-    </div>
-    <div id="hist-list"></div>
-  </div>
-</div>
-
 <!-- 날씨 위장 화면 -->
 <div id="weather-screen" style="display:none;position:fixed;inset:0;z-index:5;flex-direction:column;overflow:hidden;">
   <!-- 동적 배경 -->
@@ -514,7 +334,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div style="font-size:12px;color:rgba(255,255,255,0.7);" id="w-time"></div>
       </div>
       <div style="display:flex;gap:6px;">
-        <button onclick="backToRun()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+        <button onclick="hideWeather()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
         <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">⚙️</button>
       </div>
     </div>
@@ -668,7 +488,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <div class="lk-sub" id="al-sub"> </div>
   <div class="lk-blocked" id="al-blk"></div>
   <div class="lk-form" id="al-form">
-    <input type="password" class="lk-inp" id="al-inp" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')aUnlock()">
+    <input type="password" class="lk-inp" id="al-inp" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')aUnlock()" autocomplete="off">
     <div class="lk-err" id="al-err"></div>
     <button class="lk-btn" onclick="aUnlock()">확인</button>
     <button class="lk-link" onclick="showAChg()">비밀번호 변경</button>
@@ -676,9 +496,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   </div>
   <div class="lk-chg" id="al-chg">
     <div class="lk-chg-title">비밀번호 변경</div>
-    <input type="password" class="lk-inp" id="al-c0" placeholder="현재 비밀번호">
-    <input type="password" class="lk-inp" id="al-c1" placeholder="새 비밀번호">
-    <input type="password" class="lk-inp" id="al-c2" placeholder="새 비밀번호 확인">
+    <input type="password" class="lk-inp" id="al-c0" placeholder="현재 비밀번호" autocomplete="off">
+    <input type="password" class="lk-inp" id="al-c1" placeholder="새 비밀번호" autocomplete="off">
+    <input type="password" class="lk-inp" id="al-c2" placeholder="새 비밀번호 확인" autocomplete="off">
     <div class="lk-err" id="al-cerr"></div>
     <button class="lk-btn" onclick="saveAChg()">저장</button>
     <button class="lk-link" onclick="hideAChg()">취소</button>
@@ -709,15 +529,15 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div class="su-card">
       <div>
         <div class="f-label">이름</div>
-        <input class="f-inp" type="text" id="su-n" placeholder="표시될 이름" maxlength="20">
+        <input class="f-inp" type="text" id="su-n" placeholder="표시될 이름" maxlength="20" autocomplete="off">
       </div>
       <div>
         <div class="f-label">방 코드</div>
-        <input class="f-inp" type="text" id="su-c" placeholder="상대방과 동일하게" maxlength="20" style="text-transform:uppercase;letter-spacing:2px">
+        <input class="f-inp" type="text" id="su-c" placeholder="상대방과 동일하게" maxlength="20" style="text-transform:uppercase;letter-spacing:2px" autocomplete="off">
       </div>
       <div>
         <div class="f-label">암호키</div>
-        <input class="f-inp" type="password" id="su-s" placeholder="상대방과 동일하게" maxlength="64">
+        <input class="f-inp" type="password" id="su-s" placeholder="상대방과 동일하게" maxlength="64" autocomplete="off">
       </div>
       <button class="btn-main" onclick="saveSetup()">시작</button>
     </div>
@@ -730,7 +550,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <div class="lk-name" style="color:var(--text3)">잠금</div>
   <div class="lk-blocked" id="il-blk"></div>
   <div class="lk-form" id="il-form">
-    <input type="password" class="lk-inp" id="il-inp" placeholder="••••••" onkeydown="if(event.key==='Enter')iUnlock()">
+    <input type="password" class="lk-inp" id="il-inp" placeholder="••••••" onkeydown="if(event.key==='Enter')iUnlock()" autocomplete="off">
     <div class="lk-err" id="il-err"></div>
     <button class="lk-btn" onclick="iUnlock()">해제</button>
   </div>
@@ -741,7 +561,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <!-- 상단 헤더 -->
   <div class="hdr">
     <div class="hdr-left">
-      <button class="icon-btn" onclick="document.getElementById('sch').classList.remove('on');document.getElementById('run-screen').classList.add('on');" style="color:#888;">
+      <button class="icon-btn" onclick="document.getElementById('sch').classList.remove('on');weatherLoaded=false;showWeather();" style="color:#888;">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div class="peer-wrap">
@@ -751,9 +571,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     </div>
     <div class="hdr-right">
       <span class="tab-badge" id="b-chat"></span>
-      <button class="icon-btn" onclick="togglePeerHistory()" title="상대방 기록">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </button>
       <button class="icon-btn" onclick="confirmEmergency()" title="전체삭제">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
@@ -816,7 +633,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <button class="icon-btn" onclick="document.getElementById('img-input').click()" style="width:32px;height:32px;flex-shrink:0;color:#8a8a8a;">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         </button>
-        <input type="file" id="img-input" accept="image/*" style="display:none" onchange="sendImage(this)">
+        <input type="file" id="img-input" accept="image/*" style="display:none" onchange="sendImage(this)" autocomplete="off">
         <textarea class="ta" id="cta" placeholder="Claude에게 메시지 보내기" rows="1"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
           oninput="aH(this);resetIdle()"></textarea>
@@ -837,7 +654,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div id="sheet-auth">
       <div class="sheet-title">설정 잠금</div>
       <div class="s-note" style="margin-bottom:14px">비밀번호를 입력하세요</div>
-      <input class="s-inp" type="password" id="s-auth-inp" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSheet()">
+      <input class="s-inp" type="password" id="s-auth-inp" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSheet()" autocomplete="off">
       <div class="s-err" id="s-auth-err" style="margin-top:6px"></div>
       <button class="s-btn s-btn-a" style="margin-top:10px" onclick="authSheet()">확인</button>
     </div>
@@ -851,9 +668,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div class="s-info-row"><span class="s-info-label">이름</span><span class="s-info-val" id="si-name"></span></div>
         <div class="s-info-row"><span class="s-info-label">방 코드</span><span class="s-info-val" id="si-code"></span></div>
         <div class="s-note" style="margin-top:8px">변경하면 상대방도 동일하게 바꿔야 해요</div>
-        <input class="s-inp" type="text" id="s-name" placeholder="새 이름" maxlength="20" style="margin-top:8px">
-        <input class="s-inp" type="text" id="s-code" placeholder="새 방 코드" maxlength="20" style="text-transform:uppercase;letter-spacing:2px">
-        <input class="s-inp" type="password" id="s-sec" placeholder="암호키 (변경 시만)" maxlength="64" autocomplete="new-password">
+        <input class="s-inp" type="text" id="s-name" placeholder="새 이름" maxlength="20" style="margin-top:8px" autocomplete="off">
+        <input class="s-inp" type="text" id="s-code" placeholder="새 방 코드" maxlength="20" style="text-transform:uppercase;letter-spacing:2px" autocomplete="off">
+        <input class="s-inp" type="password" id="s-sec" placeholder="암호키 (변경 시만)" maxlength="64" autocomplete="off">
         <div class="s-err" id="s-rm-err"></div>
         <button class="s-btn s-btn-b" onclick="chgRoom()">저장</button>
       </div>
@@ -862,8 +679,8 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 
       <div class="s-section">
         <div class="s-label">앱 비밀번호 변경</div>
-        <input class="s-inp" type="password" id="s-c1" placeholder="새 비밀번호" autocomplete="new-password">
-        <input class="s-inp" type="password" id="s-c2" placeholder="새 비밀번호 확인" autocomplete="new-password">
+        <input class="s-inp" type="password" id="s-c1" placeholder="새 비밀번호" autocomplete="off">
+        <input class="s-inp" type="password" id="s-c2" placeholder="새 비밀번호 확인" autocomplete="off">
         <div class="s-err" id="s-pw-err"></div>
         <button class="s-btn s-btn-a" onclick="chgPw()">변경</button>
       </div>
@@ -1208,7 +1025,6 @@ async function devAuth(){
   if(stored&&await hPw(pw)!==stored){e.textContent='인증 실패';document.getElementById('dev-pw-inp').value='';return;}
   closeDevMenu();
   document.getElementById('weather-screen').style.display='none';
-  document.getElementById('run-screen').classList.remove('on');
   if(!stored){
     document.getElementById('sl').classList.add('on');
     return;
@@ -1269,7 +1085,7 @@ async function forceQuit(){
   try{db.collection('rooms').doc(roomId).collection('presence').doc(myId).delete();}catch{}
   document.getElementById('sch').classList.remove('on');
   weatherLoaded=false;
-  document.getElementById('run-screen').classList.add('on');
+  showWeather();
 }
 
 // PWA
@@ -1450,12 +1266,8 @@ async function enterRoom(){
     const fresh=await db.collection('rooms').doc(roomId).collection('presence').get();
     if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
   }catch(e){console.error(e);}
-  document.getElementById('sch').classList.remove('on');
-  document.getElementById('run-screen').classList.remove('on');
   document.getElementById('sch').classList.add('on');
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
-  peerUnlocked=true;
-  listenPeerRun();
 }
 
 // PRESENCE
@@ -1527,7 +1339,6 @@ function listenM(){
         const txt=await DEC(d.enc,secretKey);
         const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
         document.getElementById('e-chat').style.display='none';
-        // 날짜 구분선
         const msgs=document.getElementById('msgs');
         const dateStr=ts.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
         const lastDate=msgs.getAttribute('data-last-date');
@@ -1535,50 +1346,56 @@ function listenM(){
           msgs.setAttribute('data-last-date',dateStr);
           const dd=document.createElement('div');dd.className='date-div';dd.textContent=dateStr;msgs.appendChild(dd);
         }
-        const w=document.createElement('div');w.className='mw '+(isMe?'me':'you');w.setAttribute('data-m',id);
-        // 아바타
-        const av=document.createElement('div');av.className='mav';
-        if(isMe){
-          av.textContent=myName?myName[0].toUpperCase():'나';
-          av.style.background='#3a3a3a';av.style.color='#e5e5e5';
-        } else {
-          // 상대방: Claude 로고 느낌
-          av.innerHTML=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 2L22 12L12 22L2 12Z" fill="#cc7c3a"/><path d="M12 6L18 12L12 18L6 12Z" fill="#d4a853" opacity="0.6"/></svg>`;
-          av.style.background='#242424';
+        // 1. 내말 오른쪽, 상대방 왼쪽
+        const w=document.createElement('div');
+        w.setAttribute('data-m',id);
+        w.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin:4px 12px;`;
+        // 2. 이름 전체 표시
+        if(!isMe){
+          const nm=document.createElement('div');
+          nm.style.cssText='font-size:11px;color:#666;margin-bottom:3px;padding-left:4px;';
+          nm.textContent=d.senderName||'상대방';
+          w.appendChild(nm);
         }
-        const b=document.createElement('div');b.className='mbub';
+        const row=document.createElement('div');
+        row.style.cssText=`display:flex;align-items:flex-end;gap:6px;flex-direction:${isMe?'row-reverse':'row'};max-width:78%;`;
+        const b=document.createElement('div');
+        b.className='mbub';
+        b.style.cssText=`background:${isMe?'#2a2a2a':'#1e1e1e'};border-radius:${isMe?'18px 4px 18px 18px':'4px 18px 18px 18px'};padding:10px 14px;max-width:100%;`;
         if(d.type==='image'){
           try{
-            const binStr=atob(txt);
-            const bytes=new Uint8Array(binStr.length);
+            const binStr=atob(txt);const bytes=new Uint8Array(binStr.length);
             for(let i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
-            const blob=new Blob([bytes],{type:'image/jpeg'});
-            const url=URL.createObjectURL(blob);
+            const blob=new Blob([bytes],{type:'image/jpeg'});const url=URL.createObjectURL(blob);
             const imgEl=document.createElement('img');
-            imgEl.src=url;imgEl.style.cssText='max-width:220px;max-height:220px;border-radius:12px;display:block;cursor:pointer;';
+            imgEl.src=url;imgEl.style.cssText='max-width:200px;max-height:200px;border-radius:10px;display:block;cursor:pointer;';
             imgEl.onclick=()=>{window.open(url,'_blank');};
             b.appendChild(imgEl);
           }catch{b.textContent='[이미지]';}
         } else {
           b.textContent=txt;
         }
-        addLongPress(b,()=>showDeleteConfirm(id,'msg'));
         const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
-        const inner=document.createElement('div');inner.style.cssText='display:flex;flex-direction:column;flex:1;max-width:calc(100% - 44px);';
-        inner.appendChild(b);inner.appendChild(tm);
-        w.appendChild(av);w.appendChild(inner);
+        row.appendChild(b);row.appendChild(tm);
+        w.appendChild(row);
         msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
+          // 3. 안읽은 내용 숫자 대신 1자(●) 표시
+          const badge=document.getElementById('b-chat');
+          badge.textContent='●';badge.style.display='block';
           document.getElementById('settings-icon-single').style.display='none';
           document.getElementById('settings-icon-double').style.display='block';
-          if(document.getElementById('run-screen').classList.contains('on')) setRunMsgAlert();
+          
           sendWeatherNotif();
         }
       }
+      // 4. 개별 삭제 removed 이벤트만 처리 (삭제 버튼 없음)
       if(ch.type==='removed'){const el=document.querySelector(`[data-m="${ch.doc.id}"]`);if(el)el.remove();}
     }
-    document.getElementById('msgs').scrollTop=99999;
+    // 5. 항상 맨 아래로
+    const msgs=document.getElementById('msgs');
+    msgs.scrollTop=msgs.scrollHeight;
   });
 }
 
@@ -1684,606 +1501,10 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/weather/sw.js').catch(()=>{});}
 
 
-// ===== RUNNING =====
-let runState='idle'; // idle, running, paused
-let runStartTime=0, runElapsed=0, runTimer=null;
-let runDist=0, runCoords=[], runSplits=[], runWatchId=null, recentCoords=[], splitIdx=0;
-let lastCoord=null, lastStepTime=0, stepCount=0, cadence=0;
-let peerUnlocked=false, peerRunListener=null;
-let runHistory=JSON.parse(localStorage.getItem('run_history')||'[]');
-
-// 앱 시작시 달리기 화면 먼저
+// 앱 시작
 async function initApp(){
-  document.getElementById('run-screen').classList.add('on');
-  loadRunWeather();
-}
-
-// 달리기 화면 날씨 - 저장 지역 우선, 없으면 IP 기반
-async function loadRunWeather(){
-  try{
-    let lat=37.5665,lon=126.9780;
-    const saved=localStorage.getItem('wx_location');
-    if(saved){const loc=JSON.parse(saved);lat=loc.lat;lon=loc.lon;}
-    // 기본값 또는 저장값으로 즉시 표시
-    const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FSeoul`);
-    const d=await res.json();const c=d.current;
-    document.getElementById('run-wx-ic').textContent=WX_ICON[c.weather_code]||'🌡️';
-    document.getElementById('run-wx-tmp').textContent=Math.round(c.temperature_2m)+'°';
-    document.getElementById('run-wx-desc').textContent=WX_DESC[c.weather_code]||'';
-    // GPS로 정확한 위치 업데이트
-    try{
-      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
-      const {latitude,longitude}=pos.coords;
-      localStorage.setItem('wx_location',JSON.stringify({lat:latitude,lon:longitude}));
-      const r2=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&timezone=Asia%2FSeoul`);
-      const d2=await r2.json();const c2=d2.current;
-      document.getElementById('run-wx-ic').textContent=WX_ICON[c2.weather_code]||'🌡️';
-      document.getElementById('run-wx-tmp').textContent=Math.round(c2.temperature_2m)+'°';
-      document.getElementById('run-wx-desc').textContent=WX_DESC[c2.weather_code]||'';
-    }catch{}
-  }catch{}
-}
-
-function showWeatherFromRun(){
-  document.getElementById('run-screen').classList.remove('on');
   showWeather();
 }
-
-function openChat(){
-  document.getElementById('run-screen').classList.remove('on');
-  document.getElementById('sch').classList.add('on');
-}
-function backToRun(){
-  document.getElementById('weather-screen').style.display='none';
-  document.getElementById('run-screen').classList.add('on');
-}
-
-// 달리기 시작/일시정지
-function toggleRun(){
-  if(runState==='idle'||runState==='paused'){
-    if(runState==='idle'){
-      startCountdown();
-    } else {
-      startRun();
-    }
-  } else {
-    pauseRun();
-  }
-}
-
-function startCountdown(){
-  // GPS + 케이던스 미리 시작 (워밍업)
-  startGPS();
-  startCadence();
-  // GPS 워밍업 토스트
-  toast('GPS 준비 중...');
-  const btn=document.getElementById('run-btn-main');
-  let count=3;
-  btn.innerHTML=`<span style="font-size:32px;font-weight:700">${count}</span>`;
-  const iv=setInterval(()=>{
-    count--;
-    if(count>0){
-      btn.innerHTML=`<span style="font-size:32px;font-weight:700">${count}</span>`;
-      if(navigator.vibrate)navigator.vibrate(80);
-    } else {
-      clearInterval(iv);
-      btn.innerHTML=`<svg id="run-ic-play" fill="currentColor" viewBox="0 0 24 24" style="display:none;width:28px;height:28px"><path d="M8 5v14l11-7z"/></svg><svg id="run-ic-pause" fill="currentColor" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
-      if(navigator.vibrate)navigator.vibrate([80,40,80]);
-      startRun();
-    }
-  },1000);
-}
-
-function startRun(){
-  if(runState==='idle'){
-    runDist=0;runCoords=[];runSplits=[];runElapsed=0;recentCoords=[];splitIdx=0;
-    document.getElementById('run-splits-row').innerHTML='<div style="font-size:15px;color:#bbb;padding:8px;font-weight:500;">달리기를 시작하면 구간이 기록돼요</div>';
-  }
-  runState='running';
-  runStartTime=Date.now()-runElapsed;
-  runTimer=setInterval(updateRunUI,1000);
-  document.getElementById('run-ic-play').style.display='none';
-  document.getElementById('run-ic-pause').style.display='block';
-  document.getElementById('run-btn-main').classList.add('running');
-  document.getElementById('run-btn-stop').style.display='flex';
-  document.getElementById('run-btn-map').style.display='none';
-  if(db&&roomId) updateRunStatus('running');
-  requestWakeLock();
-  setTimeout(preloadMap, 2000);
-}
-
-function pauseRun(){
-  runState='paused';
-  runElapsed=Date.now()-runStartTime;
-  clearInterval(runTimer);
-  document.getElementById('run-ic-play').style.display='block';
-  document.getElementById('run-ic-pause').style.display='none';
-  document.getElementById('run-btn-main').classList.remove('running');
-  if(db&&roomId) updateRunStatus('paused');
-}
-
-async function stopRun(){
-  pauseRun();
-  runState='idle';
-  if(runWatchId){navigator.geolocation.clearWatch(runWatchId);runWatchId=null;}
-  stopCadence();
-  document.getElementById('run-btn-stop').style.display='none';
-  document.getElementById('run-btn-map').style.display='block';
-  document.getElementById('run-ic-play').style.display='block';
-  document.getElementById('run-ic-pause').style.display='none';
-  document.getElementById('run-btn-main').classList.remove('running');
-  document.getElementById('run-btn-main').style.background='#fff';
-  // 기록 저장
-  if(runDist>0.05){
-    const record={
-      date:new Date().toLocaleDateString('ko-KR'),
-      time:document.getElementById('run-time').textContent,
-      dist:runDist.toFixed(2),
-      pace:document.getElementById('run-pace').textContent,
-      splits:[...runSplits]
-    };
-    runHistory.unshift(record);
-    if(runHistory.length>50)runHistory=runHistory.slice(0,50);
-    localStorage.setItem('run_history',JSON.stringify(runHistory));
-    // Firebase에도 저장 (상대방이 볼 수 있도록)
-    if(db&&roomId){
-      db.collection('rooms').doc(roomId).collection('run_history').add({
-        ...record,name:myName,uid:myId,
-        ts:firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(()=>{});
-    }
-    toast('기록 저장됨 🏃'); setTimeout(showResultCard,500);
-  }
-  recentCoords=[];
-  if(db&&roomId) updateRunStatus('idle');
-  releaseWakeLock();
-}
-
-function updateRunUI(){
-  runElapsed=Date.now()-runStartTime;
-  const s=Math.floor(runElapsed/1000);
-  const m=Math.floor(s/60);
-  const h=Math.floor(m/60);
-  const timeStr=h>0?`${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  document.getElementById('run-time').textContent=timeStr;
-  document.getElementById('run-cad').textContent=cadence||'--';
-  // 지도 오버레이 동기화
-  document.getElementById('map-time').textContent=timeStr;
-  document.getElementById('map-dist').textContent=runDist.toFixed(2);
-  const paceEl=document.getElementById('run-pace');
-  if(paceEl) document.getElementById('map-pace').textContent=paceEl.textContent;
-}
-
-// GPS - 실시간 페이스용 최근 좌표 버퍼
-
-function startGPS(){
-  if(!navigator.geolocation){toast('GPS 불가');return;}
-  runWatchId=navigator.geolocation.watchPosition(pos=>{
-    const {latitude:lat,longitude:lon,accuracy}=pos.coords;
-    const elapsed=(Date.now()-runStartTime)/1000;
-    const accLimit=elapsed<30?80:30;
-    if(accuracy>accLimit)return;
-    const now=Date.now();
-    const coord={lat,lon,t:now};
-    if(lastCoord&&runState==='running'){
-      const d=calcDist(lastCoord.lat,lastCoord.lon,lat,lon);
-      toast(`정확도:${Math.round(accuracy)}m 이동:${(d*1000).toFixed(0)}m 누적:${runDist.toFixed(2)}km`);
-      // 최소 1m, 최대 500m (GPS 점프 방지)
-      if(d>0.001&&d<0.5){
-        runDist+=d;
-        document.getElementById('run-dist').textContent=runDist.toFixed(2);
-        runCoords.push(coord);
-        recentCoords.push({lat,lon,t:now,cumDist:runDist});
-        recentCoords=recentCoords.filter(c=>now-c.t<15000);
-        updateRealtimePace();
-        checkSplit();
-      }
-      // running일 때만 lastCoord 업데이트
-      lastCoord=coord;
-    } else if(!lastCoord){
-      // 최초 좌표 설정
-      lastCoord=coord;
-    } else if(runState!=='running'){
-      // 일시정지/정지 중엔 lastCoord 업데이트 안 함
-    }
-    if(db&&roomId&&peerUnlocked) updateMyLocation(lat,lon);
-    origUpdateMapMarkers();
-  },err=>{
-    console.warn('GPS 오류:',err.message);
-    if(err.code===1)toast('GPS 권한을 허용해주세요');
-    else if(err.code===2)toast('GPS 신호를 찾는 중...');
-    else toast('GPS 연결 재시도 중...');
-  },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
-}
-
-function updateRealtimePace(){
-  // 최근 10~30초 구간의 페이스 계산
-  const now=Date.now();
-  const window10=recentCoords.filter(c=>now-c.t<=10000);
-  if(window10.length>=2){
-    const oldest=window10[0];
-    const newest=window10[window10.length-1];
-    const distKm=newest.cumDist-oldest.cumDist;
-    const timeSec=(newest.t-oldest.t)/1000;
-    if(distKm>0.001&&timeSec>0){
-      const paceSecPerKm=timeSec/distKm;
-      // 비현실적 페이스 필터 (1분/km ~ 20분/km)
-      if(paceSecPerKm>=60&&paceSecPerKm<=1200){
-        const pm=Math.floor(paceSecPerKm/60);
-        const ps=Math.floor(paceSecPerKm%60);
-        document.getElementById('run-pace').textContent=`${pm}'${String(ps).padStart(2,'0')}"`;
-        return;
-      }
-    }
-  }
-}
-
-function calcDist(lat1,lon1,lat2,lon2){
-  const R=6371;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-// 구간 체크 - 동적 간격
-const SPLIT_MARKS=[0.1,0.5,1,2,3,5,10];
-function checkSplit(){
-  const nextMark=splitInterval*Math.floor(runDist/splitInterval+1e-9);
-  const prevMark=splitInterval*(splitIdx);
-  if(runDist>0&&runDist>=splitInterval*(splitIdx+1)-0.001){
-    splitIdx++;
-    const mark=splitInterval*splitIdx;
-    const s=Math.floor(runElapsed/1000);
-    const paceSecPerKm=s/runDist;
-    const pm=Math.floor(paceSecPerKm/60);
-    const ps=Math.floor(paceSecPerKm%60);
-    const label=mark>=1?`${mark}km`:`${mark*1000}m`;
-    const paceStr=`${pm}'${String(ps).padStart(2,'0')}"`;
-    addSplitChip(label,paceStr);
-    if(useVIB&&navigator.vibrate)navigator.vibrate([100,50,100]);
-    if(useVoice){
-      const msg=new SpeechSynthesisUtterance(`${label} 완료. 페이스 ${pm}분 ${ps}초`);
-      msg.lang='ko-KR';window.speechSynthesis.speak(msg);
-    }
-  }
-}
-function addSplitChip(label,pace){
-  const row=document.getElementById('run-splits-row');
-  if(row.querySelector('div[style]'))row.innerHTML='';
-  const chip=document.createElement('div');
-  chip.className='run-split-chip';
-  chip.innerHTML=`<div class="run-split-dist">${label}</div><div class="run-split-pace">${pace}</div>`;
-  row.appendChild(chip);
-}
-
-// 케이던스 (가속도계)
-let cadIv=null, cadSteps=0;
-function startCadence(){
-  cadSteps=0;
-  if(window.DeviceMotionEvent){
-    window.addEventListener('devicemotion',detectStep);
-    cadIv=setInterval(()=>{cadence=cadSteps*2;cadSteps=0;},30000);
-  }
-}
-function stopCadence(){
-  window.removeEventListener('devicemotion',detectStep);
-  clearInterval(cadIv);cadence=0;
-}
-let lastAcc=0;
-function detectStep(e){
-  const acc=e.accelerationIncludingGravity;
-  if(!acc)return;
-  const mag=Math.sqrt(acc.x**2+acc.y**2+acc.z**2);
-  const now=Date.now();
-  if(mag>13&&lastAcc<13&&now-lastStepTime>250){
-    cadSteps++;lastStepTime=now;
-  }
-  lastAcc=mag;
-}
-
-// 상대방 인증
-function showPeerAuth(){document.getElementById('peer-auth-popup').style.display='flex';}
-function closePeerAuth(){document.getElementById('peer-auth-popup').style.display='none';document.getElementById('peer-auth-inp').value='';}
-async function verifyPeerAuth(){
-  const pw=document.getElementById('peer-auth-inp').value;
-  const e=document.getElementById('peer-auth-err');
-  if(!pw){e.textContent='비밀번호를 입력하세요';return;}
-  const stored=localStorage.getItem(K.PW);
-  const ok=stored?(await hPw(pw)===stored):(pw===secretKey);
-  if(ok){
-    peerUnlocked=true;
-    closePeerAuth();
-    document.getElementById('peer-run-status').style.display='flex';
-    listenPeerRun();
-    toast('상대방 기록 활성화');
-  } else {
-    e.textContent='비밀번호가 틀렸어요';
-    document.getElementById('peer-auth-inp').value='';
-  }
-}
-function togglePeerHistory(){
-  const popup=document.getElementById('peer-history-popup');
-  const isOpen=popup.style.display==='flex';
-  if(isOpen){popup.style.display='none';return;}
-  popup.style.display='flex';
-  loadPeerHistory();
-}
-function lockPeerView(){
-  peerUnlocked=false;
-}
-
-// Firebase 달리기 상태 동기화
-async function updateRunStatus(status){
-  try{
-    await db.collection('rooms').doc(roomId).collection('run_status').doc(myId).set({
-      name:myName,status,dist:runDist.toFixed(2),
-      pace:document.getElementById('run-pace').textContent,
-      time:document.getElementById('run-time').textContent,
-      ts:firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }catch{}
-}
-async function updateMyLocation(lat,lon){
-  try{
-    await db.collection('rooms').doc(roomId).collection('run_status').doc(myId).update({lat,lon});
-  }catch{}
-}
-function listenPeerRun(){
-  if(!db||!roomId)return;
-  if(peerRunListener)peerRunListener();
-  peerRunListener=db.collection('rooms').doc(roomId).collection('run_status').onSnapshot(snap=>{
-    snap.docChanges().forEach(ch=>{
-      if(ch.doc.id===myId)return;
-      const d=ch.doc.data();
-      // 달리기 메인 - 실시간 상태
-      const mainBar=document.getElementById('peer-run-status-main');
-      const dot=document.getElementById('peer-run-dot');
-      const name=document.getElementById('peer-run-name');
-      const detail=document.getElementById('peer-run-detail');
-      if(mainBar){
-        if(d.status==='running'){
-          mainBar.style.display='flex';
-          dot.classList.add('active');
-          detail.textContent=`🏃 ${d.dist}km · ${d.pace} · ${d.time}`;
-        } else if(d.status==='paused'){
-          mainBar.style.display='flex';
-          dot.classList.remove('active');
-          detail.textContent=`⏸️ 일시정지 · ${d.dist}km`;
-        } else {
-          mainBar.style.display='none';
-        }
-      }
-    });
-  });
-}
-
-// 상대방 운동 기록 히스토리 로드
-async function loadPeerHistory(){
-  if(!db||!roomId)return;
-  const bar=document.getElementById('peer-run-status');
-  const list=document.getElementById('peer-history-list');
-  bar.style.display='flex';
-  list.innerHTML='<div style="color:#444;font-size:13px;padding:4px 0;">불러오는 중...</div>';
-  try{
-    const snap=await db.collection('rooms').doc(roomId).collection('run_history')
-      .orderBy('ts','desc').limit(20).get();
-    if(snap.empty){
-      list.innerHTML='<div style="color:#444;font-size:13px;padding:4px 0;">기록 없음</div>';
-      return;
-    }
-    list.innerHTML=snap.docs.map(doc=>{
-      const r=doc.data();
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;">
-        <div style="font-size:12px;color:#555;">${r.date||''}</div>
-        <div style="font-size:14px;color:#e0e0e0;font-weight:600;">${r.dist}km</div>
-        <div style="font-size:13px;color:#888;">${r.pace||'--'}/km</div>
-        <div style="font-size:12px;color:#555;">${r.time||''}</div>
-      </div>`;
-    }).join('');
-  }catch{
-    list.innerHTML='<div style="color:#444;font-size:13px;">기록을 불러올 수 없어요</div>';
-  }
-}
-
-// 채팅으로 이동 - 날씨 화면에서만 접속 가능
-function goToChat(){
-  // 날씨 화면으로 이동 후 설정버튼 안내
-  document.getElementById('run-screen').classList.remove('on');
-  showWeather();
-  setTimeout(()=>toast('날씨 화면 ⚙️ 버튼으로 채팅 접속'),500);
-}
-
-// 기록 히스토리
-function showHistory(){
-  const popup=document.getElementById('hist-popup');
-  popup.style.display='flex';
-  const list=document.getElementById('hist-list');
-  if(!runHistory.length){list.innerHTML='<div style="color:#333;font-size:14px;text-align:center;padding:20px;">기록이 없어요</div>';return;}
-  list.innerHTML=runHistory.map((r,i)=>`
-    <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-      <div style="font-size:12px;color:#444;margin-bottom:6px;">${r.date}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:28px;font-weight:300;color:#e0e0e0;">${r.dist}<span style="font-size:13px;color:#555;"> km</span></div>
-        <div style="text-align:right;">
-          <div style="font-size:14px;color:#888;">${r.pace} /km</div>
-          <div style="font-size:12px;color:#444;">${r.time}</div>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-function closeHistory(){document.getElementById('hist-popup').style.display='none';}
-
-let useCAD=true, useVIB=true, useVoice=false;
-let splitInterval=1; // km 단위
-function openRunSettings(){document.getElementById('run-settings').classList.add('on');}
-function closeRunSettings(){document.getElementById('run-settings').classList.remove('on');}
-function toggleCAD(){
-  useCAD=!useCAD;
-  document.getElementById('toggle-cad').classList.toggle('on',useCAD);
-}
-function toggleVIB(){
-  useVIB=!useVIB;
-  document.getElementById('toggle-vib').classList.toggle('on',useVIB);
-}
-function toggleVoice(){
-  useVoice=!useVoice;
-  document.getElementById('toggle-voice').classList.toggle('on',useVoice);
-  if(useVoice)toast('음성 안내 켜짐 🔊');
-}
-function setSplitInterval(v){
-  splitInterval=v;
-  document.querySelectorAll('.split-btn').forEach(b=>b.classList.toggle('active',+b.dataset.v===v));
-  toast(`구간 ${v>=1?v+'km':v*1000+'m'} 설정`);
-  splitIdx=0;
-}
-
-// Screen Wake Lock
-let wakeLock=null;
-async function requestWakeLock(){
-  try{
-    if('wakeLock' in navigator){
-      wakeLock=await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release',()=>{wakeLock=null;});
-    }
-  }catch{}
-}
-function releaseWakeLock(){
-  if(wakeLock){wakeLock.release();wakeLock=null;}
-}
-// 화면 복귀 시 자동 재획득
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&runState==='running') requestWakeLock();
-});
-let mapLayer=null, satLayer=null, isSatellite=false;
-
-// 달리기 시작 시 미리 지도 초기화
-// 지역 검색
-async function searchLocation(){
-  const q=document.getElementById('loc-search-inp').value.trim();
-  if(!q)return;
-  const res=document.getElementById('loc-search-results');
-  res.innerHTML='<div style="color:#555;font-size:13px;padding:8px;">검색 중...</div>';
-  try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&accept-language=ko&countrycodes=kr`);
-    const data=await r.json();
-    if(!data.length){res.innerHTML='<div style="color:#555;font-size:13px;padding:8px;">결과 없음</div>';return;}
-    res.innerHTML=data.map(d=>`<div onclick="selectLocation(${d.lat},${d.lon},'${d.display_name.split(',')[0]}')" style="padding:10px;border-bottom:1px solid #1a1a1a;cursor:pointer;font-size:14px;color:#e0e0e0;">📍 ${d.display_name.split(',').slice(0,2).join(', ')}</div>`).join('');
-  }catch{res.innerHTML='<div style="color:#c0392b;font-size:13px;padding:8px;">검색 실패</div>';}
-}
-async function selectLocation(lat,lon,name){
-  localStorage.setItem('wx_location',JSON.stringify({lat:+lat,lon:+lon,name}));
-  document.getElementById('loc-search-popup').style.display='none';
-  loadRunWeather();
-  toast(`${name} 설정됨`);
-}
-
-function preloadMap(){
-  if(leafletMap)return;
-  const mapDiv=document.getElementById('run-map');
-  mapDiv.style.visibility='hidden';
-  mapDiv.classList.add('on');
-  initLeaflet();
-  setTimeout(()=>{
-    leafletMap.invalidateSize();
-    mapDiv.classList.remove('on');
-    mapDiv.style.visibility='';
-  },1500);
-}
-
-function initLeaflet(){
-  if(leafletMap)return;
-  leafletMap=L.map('leaflet-map',{zoomControl:false});
-  mapLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM',maxZoom:19});
-  satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'©Esri',maxZoom:19});
-  mapLayer.addTo(leafletMap);
-  L.control.zoom({position:'topright'}).addTo(leafletMap);
-}
-
-function toggleMapLayer(){
-  if(!leafletMap)return;
-  isSatellite=!isSatellite;
-  if(isSatellite){
-    leafletMap.removeLayer(mapLayer);
-    satLayer.addTo(leafletMap);
-    document.getElementById('map-layer-btn').textContent='🗺️';
-  } else {
-    leafletMap.removeLayer(satLayer);
-    mapLayer.addTo(leafletMap);
-    document.getElementById('map-layer-btn').textContent='🛰️';
-  }
-}
-
-function toggleMap(){
-  const mapDiv=document.getElementById('run-map');
-  if(mapDiv.classList.contains('on')){
-    mapDiv.classList.remove('on');
-    return;
-  }
-  mapDiv.classList.add('on');
-  initLeaflet();
-  setTimeout(()=>leafletMap.invalidateSize(),100);
-  if(lastCoord){
-    leafletMap.setView([lastCoord.lat,lastCoord.lon],16);
-    updateMapMarkers();
-  } else {
-    navigator.geolocation.getCurrentPosition(p=>{
-      leafletMap.setView([p.coords.latitude,p.coords.longitude],16);
-    },()=>{},{timeout:5000});
-  }
-  // 경로 그리기
-  drawRoute();
-  // 오버레이 업데이트
-  document.getElementById('map-dist').textContent=runDist.toFixed(2);
-  document.getElementById('map-pace').textContent=document.getElementById('run-pace').textContent;
-  document.getElementById('map-time').textContent=document.getElementById('run-time').textContent;
-}
-function updateMapMarkers(){
-  if(!leafletMap||!lastCoord)return;
-  const myIcon=L.divIcon({html:'<div style="width:16px;height:16px;background:#fff;border:3px solid #000;border-radius:50%;"></div>',iconSize:[16,16],className:''});
-  if(myMarker)myMarker.setLatLng([lastCoord.lat,lastCoord.lon]);
-  else myMarker=L.marker([lastCoord.lat,lastCoord.lon],{icon:myIcon}).addTo(leafletMap);
-}
-function drawRoute(){
-  if(!leafletMap||runCoords.length<2)return;
-  const pts=runCoords.map(c=>[c.lat,c.lon]);
-  if(routeLine)routeLine.setLatLngs(pts);
-  else routeLine=L.polyline(pts,{color:'#cc7c3a',weight:4,opacity:0.8}).addTo(leafletMap);
-}
-
-// GPS 위치 업데이트 시 지도도 갱신
-const origUpdateMapMarkers=()=>{
-  if(document.getElementById('run-map').classList.contains('on')){
-    updateMapMarkers();
-    drawRoute();
-    document.getElementById('map-dist').textContent=runDist.toFixed(2);
-    document.getElementById('map-pace').textContent=document.getElementById('run-pace').textContent;
-    document.getElementById('map-time').textContent=document.getElementById('run-time').textContent;
-  }
-};
-
-// 결과 카드
-function showResultCard(){
-  const totalSec=Math.floor(runElapsed/1000);
-  const avgPace=runDist>0?totalSec/runDist:0;
-  const pm=Math.floor(avgPace/60),ps=Math.floor(avgPace%60);
-  document.getElementById('rc-dist').textContent=runDist.toFixed(2);
-  document.getElementById('rc-time').textContent=document.getElementById('run-time').textContent;
-  document.getElementById('rc-pace').textContent=avgPace>0?`${pm}'${String(ps).padStart(2,'0')}"`:'--';
-  document.getElementById('rc-cad').textContent=cadence||'--';
-  document.getElementById('result-card').classList.add('on');
-}
-function closeResultCard(){document.getElementById('result-card').classList.remove('on');}
-
-// 새 메시지 시 설정 아이콘 2개로
-function setRunMsgAlert(){
-  document.getElementById('run-settings-ic-single').style.display='none';
-  document.getElementById('run-settings-ic-double').style.display='block';
-}
-
-// splitIdx 초기화
-function resetSplitIdx(){splitIdx=0;}
 
 window.addEventListener('load',()=>{initApp();});
 </script>
