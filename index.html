@@ -1227,6 +1227,7 @@ function saveSetup(){
   localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:s}));
   myName=n;roomId=c;secretKey=s;
   if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
+  if(!db){firebase.initializeApp(FIREBASE_CFG);db=firebase.firestore();}
   document.getElementById('ss').classList.remove('on');enterRoom();
 }
 
@@ -1244,17 +1245,6 @@ function startIdle(){
   },1000);
 }
 function resetIdle(){if(!inRoom||idleLimit===0)return;idleSecs=0;const f=document.getElementById('idle-bar');if(f){f.style.width='100%';f.className='idle-bar';}}
-function startIdle(){
-  ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
-  if(idleIv)clearInterval(idleIv);
-  idleIv=setInterval(()=>{
-    if(!inRoom||idleLocked||idleLimit===0)return;
-    idleSecs++;
-    const pct=Math.max(0,100-idleSecs/idleLimit*100);
-    const f=document.getElementById('idle-bar');f.style.width=pct+'%';
-    if(idleSecs>=idleLimit)iLock();
-  },1000);
-}
 function iLock(){if(idleLocked||!inRoom)return;idleLocked=true;document.getElementById('sil').classList.add('on');document.getElementById('il-inp').value='';document.getElementById('il-err').textContent='';toast('잠금됨');}
 async function iUnlock(){
   if(Date.now()<ilBlk)return;
@@ -1263,6 +1253,7 @@ async function iUnlock(){
   const ok=stored?(await hPw(v)===stored):(v.length>=4);
   if(ok){idleLocked=false;ilFail=0;document.getElementById('sil').classList.remove('on');resetIdle();toast('해제됨');}
   else{ilFail++;if(ilFail>=5){ilBlk=Date.now()+5*60*1000;document.getElementById('il-form').style.display='none';const b=document.getElementById('il-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{ilFail=0;ilBlk=0;document.getElementById('il-form').style.display='flex';b.style.display='none';},5*60*1000);}else{document.getElementById('il-err').textContent=`비밀번호가 틀렸어요 (${ilFail}/5)`;document.getElementById('il-inp').value='';}}
+}
 
 // ROOM
 async function enterRoom(){
@@ -1324,7 +1315,6 @@ function clearMsgAlert(){
   chatUnread=0;
   const badge=document.getElementById('b-chat');
   badge.textContent='';badge.style.display='none';
-}
 }
 
 // 사진 전송
