@@ -1191,18 +1191,15 @@ async function afterUnlock(){
   document.getElementById('sl').classList.remove('on');
   try{
     if(!db){
-      // Config 자동 적용
-      const cfg=localStorage.getItem(K.CFG)||JSON.stringify(FIREBASE_CFG);
-      firebase.initializeApp(JSON.parse(cfg));
+      firebase.initializeApp(FIREBASE_CFG);
       db=firebase.firestore();
-      localStorage.setItem(K.CFG,cfg);
     }
     const su=localStorage.getItem(K.SU);
     if(!su){document.getElementById('ss').classList.add('on');return;}
     const s=JSON.parse(su);myName=s.name;roomId=s.code.toUpperCase();secretKey=s.secret;
     if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
     await enterRoom();
-  }catch(e){console.error(e);document.getElementById('sc').classList.add('on');}
+  }catch(e){console.error(e);toast('연결 오류, 다시 시도해주세요');}
 }
 function showAChg(){document.getElementById('al-form').style.display='none';document.getElementById('al-chg').style.display='flex';}
 function hideAChg(){document.getElementById('al-chg').style.display='none';document.getElementById('al-form').style.display='flex';}
