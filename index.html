@@ -334,7 +334,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div style="font-size:12px;color:rgba(255,255,255,0.7);" id="w-time"></div>
       </div>
       <div style="display:flex;gap:6px;">
-        <button onclick="hideWeather()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
         <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">⚙️</button>
       </div>
     </div>
@@ -841,12 +840,12 @@ async function loadMainWeather(lat,lon,locName){
         const addr=gd.address;
         const name=addr?.village||addr?.suburb||addr?.neighbourhood||addr?.quarter||addr?.city_district||addr?.town||addr?.city||addr?.county||'내 위치';
         localStorage.setItem('wx_location',JSON.stringify({lat:latitude,lon:longitude,name}));
-        // GPS 위치로 날씨 다시 로드
         loadMainWeather(latitude,longitude,name);
       }catch{
         localStorage.setItem('wx_location',JSON.stringify({lat:latitude,lon:longitude,name:'내 위치'}));
+        loadMainWeather(latitude,longitude,'내 위치');
       }
-    },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:300000});
+    },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:0});
   }
   // 지역명 표시 (지도 핀 아이콘 포함)
   document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>';
