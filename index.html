@@ -549,7 +549,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <div class="lk-name" style="color:var(--text3)">잠금</div>
   <div class="lk-blocked" id="il-blk"></div>
   <div class="lk-form" id="il-form">
-    <input type="password" class="lk-inp" id="il-inp" placeholder="••••••" onkeydown="if(event.key==='Enter')iUnlock()" autocomplete="off">
+    <input type="password" class="lk-inp" id="il-inp" placeholder="앱 비밀번호" onkeydown="if(event.key==='Enter')iUnlock()" autocomplete="off">
     <div class="lk-err" id="il-err"></div>
     <button class="lk-btn" onclick="iUnlock()">해제</button>
   </div>
@@ -575,11 +575,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
       <button class="icon-btn" id="settings-btn" onclick="openSheet();clearMsgAlert()">
-        <svg id="settings-icon-single" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <svg id="settings-icon-double" width="22" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 44 28" style="display:none">
-          <g transform="translate(0,0)"><circle cx="10" cy="10" r="3.5"/><path d="M17.4 13a1.3 1.3 0 0 0 .26 1.45l.05.05a1.6 1.6 0 0 1-2.26 2.26l-.05-.05a1.3 1.3 0 0 0-1.45-.26 1.3 1.3 0 0 0-.8 1.2V18a1.6 1.6 0 0 1-3.2 0v-.07a1.3 1.3 0 0 0-.85-1.19 1.3 1.3 0 0 0-1.45.26l-.05.05a1.6 1.6 0 0 1-2.26-2.26l.05-.05A1.3 1.3 0 0 0 5.4 13a1.3 1.3 0 0 0-1.2-.8H4a1.6 1.6 0 0 1 0-3.2h.07a1.3 1.3 0 0 0 1.19-.85 1.3 1.3 0 0 0-.26-1.45l-.05-.05A1.6 1.6 0 0 1 7.21 4.4l.05.05A1.3 1.3 0 0 0 8.71 4.7a1.3 1.3 0 0 0 .8-1.2V3.4a1.6 1.6 0 0 1 3.2 0v.07a1.3 1.3 0 0 0 .8 1.2 1.3 1.3 0 0 0 1.45-.26l.05-.05a1.6 1.6 0 0 1 2.26 2.26l-.05.05A1.3 1.3 0 0 0 17.48 8a1.3 1.3 0 0 0 1.2.8h.12a1.6 1.6 0 0 1 0 3.2h-.07a1.3 1.3 0 0 0-1.2.8z"/></g>
-          <g transform="translate(22,8)"><circle cx="10" cy="10" r="3.5"/><path d="M17.4 13a1.3 1.3 0 0 0 .26 1.45l.05.05a1.6 1.6 0 0 1-2.26 2.26l-.05-.05a1.3 1.3 0 0 0-1.45-.26 1.3 1.3 0 0 0-.8 1.2V18a1.6 1.6 0 0 1-3.2 0v-.07a1.3 1.3 0 0 0-.85-1.19 1.3 1.3 0 0 0-1.45.26l-.05.05a1.6 1.6 0 0 1-2.26-2.26l.05-.05A1.3 1.3 0 0 0 5.4 13a1.3 1.3 0 0 0-1.2-.8H4a1.6 1.6 0 0 1 0-3.2h.07a1.3 1.3 0 0 0 1.19-.85 1.3 1.3 0 0 0-.26-1.45l-.05-.05A1.6 1.6 0 0 1 7.21 4.4l.05.05A1.3 1.3 0 0 0 8.71 4.7a1.3 1.3 0 0 0 .8-1.2V3.4a1.6 1.6 0 0 1 3.2 0v.07a1.3 1.3 0 0 0 .8 1.2 1.3 1.3 0 0 0 1.45-.26l.05-.05a1.6 1.6 0 0 1 2.26 2.26l-.05.05A1.3 1.3 0 0 0 17.48 8a1.3 1.3 0 0 0 1.2.8h.12a1.6 1.6 0 0 1 0 3.2h-.07a1.3 1.3 0 0 0-1.2.8z"/></g>
-        </svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
       <button class="icon-btn" onclick="forceQuit()" style="color:#c0392b">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
@@ -1203,7 +1199,9 @@ async function afterUnlock(){
     }
     const su=localStorage.getItem(K.SU);
     if(!su){document.getElementById('ss').classList.add('on');return;}
-    const s=JSON.parse(su);myName=s.name;roomId=s.code.toUpperCase();secretKey=s.secret;myId='u_'+crypto.randomUUID().substring(0,8);await enterRoom();
+    const s=JSON.parse(su);myName=s.name;roomId=s.code.toUpperCase();secretKey=s.secret;
+    if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
+    await enterRoom();
   }catch(e){console.error(e);document.getElementById('sc').classList.add('on');}
 }
 function showAChg(){document.getElementById('al-form').style.display='none';document.getElementById('al-chg').style.display='flex';}
@@ -1230,12 +1228,25 @@ function saveSetup(){
   const n=document.getElementById('su-n').value.trim(),c=document.getElementById('su-c').value.trim().toUpperCase(),s=document.getElementById('su-s').value.trim();
   if(!n||!c||c.length<2||s.length<4){toast('모두 입력해주세요');return;}
   localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:s}));
-  myName=n;roomId=c;secretKey=s;myId='u_'+crypto.randomUUID().substring(0,8);
+  myName=n;roomId=c;secretKey=s;
+  if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
   document.getElementById('ss').classList.remove('on');enterRoom();
 }
 
 // IDLE
-function resetIdle(){if(!inRoom||idleLimit===0)return;idleSecs=0;const f=document.getElementById('idle-bar');f.style.width='100%';f.className='idle-bar';}
+function startIdle(){
+  if(idleIv)clearInterval(idleIv);
+  idleSecs=0;
+  ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
+  idleIv=setInterval(()=>{
+    if(!inRoom||idleLocked||idleLimit===0)return;
+    idleSecs++;
+    const pct=Math.max(0,100-idleSecs/idleLimit*100);
+    document.getElementById('idle-bar').style.width=pct+'%';
+    if(idleSecs>=idleLimit)iLock();
+  },1000);
+}
+function resetIdle(){if(!inRoom||idleLimit===0)return;idleSecs=0;const f=document.getElementById('idle-bar');if(f){f.style.width='100%';f.className='idle-bar';}}
 function startIdle(){
   ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
   if(idleIv)clearInterval(idleIv);
@@ -1248,12 +1259,13 @@ function startIdle(){
   },1000);
 }
 function iLock(){if(idleLocked||!inRoom)return;idleLocked=true;document.getElementById('sil').classList.add('on');document.getElementById('il-inp').value='';document.getElementById('il-err').textContent='';toast('잠금됨');}
-function iUnlock(){
+async function iUnlock(){
   if(Date.now()<ilBlk)return;
   const v=document.getElementById('il-inp').value;
-  if(v===secretKey){idleLocked=false;ilFail=0;document.getElementById('sil').classList.remove('on');resetIdle();toast('해제됨');}
-  else{ilFail++;if(ilFail>=5){ilBlk=Date.now()+5*60*1000;document.getElementById('il-form').style.display='none';const b=document.getElementById('il-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{ilFail=0;ilBlk=0;document.getElementById('il-form').style.display='flex';b.style.display='none';},5*60*1000);}else{document.getElementById('il-err').textContent=`잘못된 암호키 (${ilFail}/5)`;document.getElementById('il-inp').value='';}}
-}
+  const stored=localStorage.getItem(K.PW);
+  const ok=stored?(await hPw(v)===stored):(v.length>=4);
+  if(ok){idleLocked=false;ilFail=0;document.getElementById('sil').classList.remove('on');resetIdle();toast('해제됨');}
+  else{ilFail++;if(ilFail>=5){ilBlk=Date.now()+5*60*1000;document.getElementById('il-form').style.display='none';const b=document.getElementById('il-blk');b.style.display='block';b.textContent='5회 초과 — 5분 후 재시도';setTimeout(()=>{ilFail=0;ilBlk=0;document.getElementById('il-form').style.display='flex';b.style.display='none';},5*60*1000);}else{document.getElementById('il-err').textContent=`비밀번호가 틀렸어요 (${ilFail}/5)`;document.getElementById('il-inp').value='';}}
 
 // ROOM
 async function enterRoom(){
@@ -1268,6 +1280,8 @@ async function enterRoom(){
   }catch(e){console.error(e);}
   document.getElementById('sch').classList.add('on');
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
+  // 안 읽은 메시지 읽음 처리
+  markAllRead();
 }
 
 // PRESENCE
@@ -1293,13 +1307,27 @@ async function sendMsg(){
   const ta=document.getElementById('cta'),t=ta.value.trim();if(!t)return;
   ta.value='';aH(ta);resetIdle();
   const enc=await ENC(t,secretKey);
-  await db.collection('rooms').doc(roomId).collection('messages').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp(),type:'text'});
+  await db.collection('rooms').doc(roomId).collection('messages').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp(),type:'text',read:false});
+}
+
+// 읽음 처리
+async function markAllRead(){
+  if(!db||!roomId)return;
+  try{
+    const snap=await db.collection('rooms').doc(roomId).collection('messages')
+      .where('senderId','!=',myId).where('read','==',false).get();
+    const batch=db.batch();
+    snap.docs.forEach(doc=>batch.update(doc.ref,{read:true}));
+    await batch.commit();
+  }catch{}
 }
 
 // 설정 버튼 알림 초기화
 function clearMsgAlert(){
-  document.getElementById('settings-icon-single').style.display='block';
-  document.getElementById('settings-icon-double').style.display='none';
+  chatUnread=0;
+  const badge=document.getElementById('b-chat');
+  badge.textContent='';badge.style.display='none';
+}
 }
 
 // 사진 전송
@@ -1376,22 +1404,29 @@ function listenM(){
           b.textContent=txt;
         }
         const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
+        // 내 메시지에 읽음 표시
+        const readMark=document.createElement('div');
+        readMark.setAttribute('data-read-m',id);
+        readMark.style.cssText='font-size:10px;color:#cc7c3a;margin-bottom:2px;';
+        readMark.textContent=isMe&&d.read===false?'1':'';
         row.appendChild(b);row.appendChild(tm);
         w.appendChild(row);
+        if(isMe) w.appendChild(readMark);
         msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
-          // 3. 안읽은 내용 숫자 대신 1자(●) 표시
           const badge=document.getElementById('b-chat');
           badge.textContent='●';badge.style.display='block';
-          document.getElementById('settings-icon-single').style.display='none';
-          document.getElementById('settings-icon-double').style.display='block';
-          
           sendWeatherNotif();
         }
       }
       // 4. 개별 삭제 removed 이벤트만 처리 (삭제 버튼 없음)
       if(ch.type==='removed'){const el=document.querySelector(`[data-m="${ch.doc.id}"]`);if(el)el.remove();}
+      // 읽음 상태 업데이트
+      if(ch.type==='modified'){
+        const el=document.querySelector(`[data-read-m="${ch.doc.id}"]`);
+        if(el&&ch.doc.data().read===true)el.textContent='';
+      }
     }
     // 5. 항상 맨 아래로
     const msgs=document.getElementById('msgs');
