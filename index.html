@@ -717,7 +717,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 <div id="toast"></div>
 
 <script>
-let db=null,myName='',myId='',roomId='',secretKey='';
+let db=null,myName='',myId=localStorage.getItem('my_uid')||'',roomId='',secretKey='';
 let curPanel='chat',chatUnread=0,boardUnread=0;
 let unsubM=null,unsubP=null,unsubPr=null,presIv=null;
 let ilFail=0,ilBlk=0,idleLimit=180,idleSecs=0,idleIv=null,inRoom=false,idleLocked=false;
