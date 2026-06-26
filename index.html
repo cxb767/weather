@@ -1303,11 +1303,17 @@ async function markAllRead(){
   if(!db||!roomId)return;
   try{
     const snap=await db.collection('rooms').doc(roomId).collection('messages')
-      .where('senderId','!=',myId).where('read','==',false).get();
+      .where('read','==',false).get();
     const batch=db.batch();
-    snap.docs.forEach(doc=>batch.update(doc.ref,{read:true}));
+    snap.docs.forEach(doc=>{
+      if(doc.data().senderId!==myId){
+        batch.update(doc.ref,{read:true});
+      }
+    });
     await batch.commit();
-  }catch{}
+    // UI에서 1 즉시 제거
+    document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
+  }catch(e){console.warn('markAllRead:',e);}
 }
 
 // 설정 버튼 알림 초기화
