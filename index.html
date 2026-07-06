@@ -570,7 +570,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
       </div>
     </div>
     <div class="hdr-right">
-      <span class="tab-badge" id="b-chat"></span>
       <button class="icon-btn" onclick="confirmEmergency()" title="전체삭제">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
@@ -844,7 +843,7 @@ async function loadMainWeather(lat,lon,locName){
     },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:0});
   }
   // 지역명 표시 (지도 핀 아이콘 포함)
-  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>';
+  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:none;margin-left:6px;">🙂</span>';
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
   if(!d){document.getElementById('w-desc-top').textContent='날씨 로드 실패';return;}
@@ -1267,8 +1266,9 @@ async function enterRoom(){
     if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
   }catch(e){console.error(e);}
   document.getElementById('sch').classList.add('on');
+  const wb=document.getElementById('w-msg-badge');if(wb)wb.style.display='none';
+  chatUnread=0;
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
-  // 안 읽은 메시지 읽음 처리
   markAllRead();
 }
 
@@ -1311,8 +1311,6 @@ async function markAllRead(){
       }
     });
     await batch.commit();
-    // UI에서 1 즉시 제거
-    document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
   }catch(e){console.warn('markAllRead:',e);}
 }
 
@@ -1408,9 +1406,12 @@ function listenM(){
         msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
-          const badge=document.getElementById('b-chat');
-          badge.textContent='●';badge.style.display='block';
+          // 날씨화면 스마일 표시
+          const wb=document.getElementById('w-msg-badge');
+          if(wb)wb.style.display='inline';
           sendWeatherNotif();
+          // 내가 채팅방 안에 있으면 즉시 읽음 처리
+          if(inRoom)markAllRead();
         }
       }
       // 4. 개별 삭제 removed 이벤트만 처리 (삭제 버튼 없음)
