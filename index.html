@@ -334,6 +334,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div style="font-size:12px;color:rgba(255,255,255,0.7);" id="w-time"></div>
       </div>
       <div style="display:flex;gap:6px;">
+        <button onclick="doWeatherRefresh()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">🔄</button>
         <button onclick="openDevMenu()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">⚙️</button>
       </div>
     </div>
@@ -355,7 +356,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
       <!-- 메인 날씨 -->
       <div style="padding:10px 24px 16px;">
         <div style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;" id="w-desc-top">불러오는 중...</div>
-        <div style="display:flex;align-items:flex-start;gap:4px;">
+        <div style="display:flex;align-items:flex-start;gap:4px;" id="w-temp-wrap" ontouchstart="wRefreshStart()" ontouchend="wRefreshEnd()" ontouchcancel="wRefreshEnd()">
           <div style="font-size:88px;font-weight:200;color:#fff;line-height:1;" id="w-temp">--</div>
           <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:200;">°</div>
           <div style="font-size:20px;color:rgba(255,255,255,0.7);margin-top:18px;font-weight:300;">C</div>
@@ -719,6 +720,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 let db=null,myName='',myId=localStorage.getItem('my_uid')||'',roomId='',secretKey='';
 let curPanel='chat',chatUnread=0,boardUnread=0;
 let unsubM=null,unsubP=null,unsubPr=null,presIv=null;
+let unsubWeather=null;
 let ilFail=0,ilBlk=0,idleLimit=180,idleSecs=0,idleIv=null,inRoom=false,idleLocked=false;
 let deferredPrompt=null;
 let pendingDeleteId=null,pendingDeleteType=null;
@@ -982,6 +984,8 @@ async function showWeather(){
   updateTime();
   setInterval(updateTime,10000);
   if(!weatherLoaded){weatherLoaded=true;loadMainWeather(null,null,null);loadCityWeather();}
+  // 날씨화면에서 새메시지 감지
+  startWeatherListener();
 }
 
 function hideWeather(){
@@ -1270,6 +1274,8 @@ async function enterRoom(){
   document.getElementById('sch').classList.add('on');
   const wb=document.getElementById('w-msg-badge');if(wb)wb.style.display='none';
   chatUnread=0;
+  // 날씨화면 리스너 중지
+  if(unsubWeather){unsubWeather();unsubWeather=null;}
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
   markAllRead();
 }
@@ -1300,7 +1306,61 @@ async function sendMsg(){
   await db.collection('rooms').doc(roomId).collection('messages').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp(),type:'text',read:false});
 }
 
-// 읽음 처리
+async function doWeatherRefresh(){
+  // 날씨 새로고침
+  weatherLoaded=false;
+  document.getElementById('w-desc-top').textContent='불러오는 중...';
+  document.getElementById('w-temp').textContent='--';
+  loadMainWeather(null,null,null);
+  // 앱 캐시도 초기화
+  toast('새로고침 중...');
+  if('serviceWorker' in navigator){
+    const regs=await navigator.serviceWorker.getRegistrations();
+    for(const reg of regs)await reg.unregister();
+  }
+  const keys=await caches.keys();
+  for(const key of keys)await caches.delete(key);
+  setTimeout(()=>location.reload(true),1000);
+}
+
+// 날씨화면 온도 길게 누르기 → 앱 업데이트
+let wRefreshTimer=null;
+function wRefreshStart(){
+  wRefreshTimer=setTimeout(async()=>{
+    toast('앱 업데이트 중...');
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      for(const reg of regs)await reg.unregister();
+    }
+    const keys=await caches.keys();
+    for(const key of keys)await caches.delete(key);
+    location.reload(true);
+  },1500);
+}
+function wRefreshEnd(){
+  if(wRefreshTimer){clearTimeout(wRefreshTimer);wRefreshTimer=null;}
+}
+
+// 날씨화면 새메시지 감지 리스너
+function startWeatherListener(){
+  if(!db||!roomId)return;
+  if(unsubWeather){unsubWeather();unsubWeather=null;}
+  // 마지막 메시지 이후 새 메시지만 감지
+  const since=firebase.firestore.Timestamp.now();
+  unsubWeather=db.collection('rooms').doc(roomId).collection('messages')
+    .where('ts','>',since)
+    .onSnapshot(snap=>{
+      snap.docChanges().forEach(ch=>{
+        if(ch.type==='added'&&ch.doc.data().senderId!==myId){
+          // 상대방 새 메시지 → 스마일 표시
+          const wb=document.getElementById('w-msg-badge');
+          if(wb)wb.style.display='inline';
+        }
+      });
+    });
+}
+
+// 읽음 처리 - 상대방 메시지만, 성공 시 UI에서 1 직접 제거
 async function markAllRead(){
   if(!db||!roomId)return;
   try{
@@ -1314,7 +1374,11 @@ async function markAllRead(){
         hasUpdate=true;
       }
     });
-    if(hasUpdate)await batch.commit();
+    if(hasUpdate){
+      await batch.commit();
+      // 상대방이 읽었으니 내 말풍선 1 모두 제거
+      document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
+    }
   }catch(e){console.warn('markAllRead:',e);}
 }
 
