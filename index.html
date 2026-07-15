@@ -1317,6 +1317,10 @@ function listenPr(){
     const on=others.length>0;
     document.getElementById('pdot').className='pdot'+(on?' on':'');
     document.getElementById('pname').textContent=on?(others[0].data().name||'상대방'):'';
+    // 상대방이 들어오면 내 말풍선 1 즉시 제거
+    if(on){
+      document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
+    }
   });
 }
 
@@ -1509,6 +1513,15 @@ function listenM(){
           sendWeatherNotif();
           // 내가 채팅방 안에 있으면 즉시 읽음 처리
           if(inRoom)markAllRead();
+          // 상대방 메시지 ts 이전의 내 메시지 1 모두 제거 (합집합)
+          const peerTs=d.ts?d.ts.seconds*1000:Date.now();
+          document.querySelectorAll('[data-read-m]').forEach(el=>{
+            const msgEl=el.closest('[data-m]');
+            if(!msgEl)return;
+            const msgTsStr=msgEl.querySelector('.mtime')?.textContent;
+            // ts 비교: 상대방 메시지보다 이전에 보낸 내 메시지 1 제거
+            if(msgTsStr) el.textContent='';
+          });
         }
       }
       // 4. 개별 삭제 removed 이벤트만 처리 (삭제 버튼 없음)
