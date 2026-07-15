@@ -1367,14 +1367,23 @@ function wRefreshEnd(){
 function startWeatherListener(){
   if(!db||!roomId)return;
   if(unsubWeather){unsubWeather();unsubWeather=null;}
-  // 마지막 메시지 이후 새 메시지만 감지
+  // 기존 안읽은 메시지 체크
+  db.collection('rooms').doc(roomId).collection('messages')
+    .where('read','==',false).get().then(snap=>{
+      snap.docs.forEach(doc=>{
+        if(doc.data().senderId!==myId){
+          const wb=document.getElementById('w-msg-badge');
+          if(wb)wb.style.display='inline';
+        }
+      });
+    }).catch(()=>{});
+  // 새 메시지 실시간 감지
   const since=firebase.firestore.Timestamp.now();
   unsubWeather=db.collection('rooms').doc(roomId).collection('messages')
     .where('ts','>',since)
     .onSnapshot(snap=>{
       snap.docChanges().forEach(ch=>{
         if(ch.type==='added'&&ch.doc.data().senderId!==myId){
-          // 상대방 새 메시지 → 스마일 표시
           const wb=document.getElementById('w-msg-badge');
           if(wb)wb.style.display='inline';
         }
