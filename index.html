@@ -106,7 +106,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 .panel.on{display:flex;}
 
 /* Messages */
-.msgs{flex:1;overflow-y:auto;padding:20px 0 8px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;background:#1a1a1a;}
+.msgs{flex:1;overflow-y:auto;padding:20px 0 8px;display:flex;flex-direction:column-reverse;gap:0;-webkit-overflow-scrolling:touch;background:#1a1a1a;}
 .msgs::-webkit-scrollbar{width:4px;}
 .msgs::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px;}
 
@@ -1453,7 +1453,7 @@ async function sendImage(input){
 }
 function listenM(){
   if(unsubM)unsubM();
-  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(3).onSnapshot(async snap=>{
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(100).onSnapshot(async snap=>{
     const changes=[...snap.docChanges()].reverse();
     for(const ch of changes){
       if(ch.type==='added'){
