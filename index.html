@@ -1453,8 +1453,9 @@ async function sendImage(input){
 }
 function listenM(){
   if(unsubM)unsubM();
-  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','asc').onSnapshot(async snap=>{
-    for(const ch of snap.docChanges()){
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(30).onSnapshot(async snap=>{
+    const changes=[...snap.docChanges()].reverse();
+    for(const ch of changes){
       if(ch.type==='added'){
         const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
         const d=ch.doc.data(),isMe=d.senderId===myId;
