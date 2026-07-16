@@ -1303,7 +1303,7 @@ async function enterRoom(){
   markAllRead();
   const msgs=document.getElementById('msgs');
   msgs.style.visibility='hidden';
-  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;msgs.style.visibility='visible';},800);
+  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;msgs.style.visibility='visible';},0);
   setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
   // 진입 후 맨 아래로 스크롤
   setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
