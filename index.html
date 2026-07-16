@@ -1301,6 +1301,10 @@ async function enterRoom(){
   if(unsubWeather){unsubWeather();unsubWeather=null;}
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
   markAllRead();
+  setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
+  setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
+  // 진입 후 맨 아래로 스크롤
+  setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
 }
 
 // PRESENCE
@@ -1334,20 +1338,14 @@ async function sendMsg(){
 }
 
 async function doWeatherRefresh(){
-  // 날씨 새로고침
-  weatherLoaded=false;
-  document.getElementById('w-desc-top').textContent='불러오는 중...';
-  document.getElementById('w-temp').textContent='--';
-  loadMainWeather(null,null,null);
-  // 앱 캐시도 초기화
-  toast('새로고침 중...');
+  toast('업데이트 중...');
   if('serviceWorker' in navigator){
     const regs=await navigator.serviceWorker.getRegistrations();
     for(const reg of regs)await reg.unregister();
   }
   const keys=await caches.keys();
   for(const key of keys)await caches.delete(key);
-  setTimeout(()=>location.reload(true),1000);
+  location.reload(true);
 }
 
 // 날씨화면 온도 길게 누르기 → 앱 업데이트
