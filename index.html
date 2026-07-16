@@ -844,10 +844,10 @@ async function loadMainWeather(lat,lon,locName){
       }
     },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:0});
   }
-  // 지역명 표시 (지도 핀 아이콘 포함)
+  // 지역명 표시 (지도 핀 아이콘 포함) - badge 상태 유지
   const badge=document.getElementById('w-msg-badge');
-  const badgeHtml=badge?badge.outerHTML:'';
-  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span>'+badgeHtml;
+  const badgeVisible=badge&&badge.style.display!=='none';
+  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:${badgeVisible?\'inline\':\'none\'};margin-left:6px;">🙂</span>';
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
   if(!d){document.getElementById('w-desc-top').textContent='날씨 로드 실패';return;}
