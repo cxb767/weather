@@ -721,6 +721,7 @@ let db=null,myName='',myId=localStorage.getItem('my_uid')||'',roomId='',secretKe
 let curPanel='chat',chatUnread=0,boardUnread=0;
 let unsubM=null,unsubP=null,unsubPr=null,presIv=null;
 let unsubWeather=null;
+let hasNewMsg=false;
 let ilFail=0,ilBlk=0,idleLimit=180,idleSecs=0,idleIv=null,inRoom=false,idleLocked=false;
 let deferredPrompt=null;
 let pendingDeleteId=null,pendingDeleteType=null;
@@ -844,10 +845,9 @@ async function loadMainWeather(lat,lon,locName){
       }
     },()=>{},{enableHighAccuracy:false,timeout:8000,maximumAge:0});
   }
-  // 지역명 표시 (지도 핀 아이콘 포함) - badge 상태 유지
-  const badge=document.getElementById('w-msg-badge');
-  const badgeVisible=badge&&badge.style.display!=='none';
-  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:${badgeVisible?\'inline\':\'none\'};margin-left:6px;">🙂</span>';
+  // 지역명 표시
+  document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:none;margin-left:6px;">🙂</span>';
+  if(hasNewMsg){const nb=document.getElementById('w-msg-badge');if(nb)nb.style.display='inline';}
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
   if(!d){document.getElementById('w-desc-top').textContent='날씨 로드 실패';return;}
@@ -1294,6 +1294,7 @@ async function enterRoom(){
     if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
   }catch(e){console.error(e);}
   document.getElementById('sch').classList.add('on');
+  hasNewMsg=false;
   const wb=document.getElementById('w-msg-badge');if(wb)wb.style.display='none';
   chatUnread=0;
   // 날씨화면 리스너 중지
@@ -1375,7 +1376,9 @@ function startWeatherListener(){
   db.collection('rooms').doc(roomId).collection('messages')
     .where('read','==',false).get().then(snap=>{
       snap.docs.forEach(doc=>{
-        if(doc.data().senderId!==myId){
+        const data=doc.data();
+        if(data.senderId!==myId&&data.read===false){
+          hasNewMsg=true;
           const wb=document.getElementById('w-msg-badge');
           if(wb)wb.style.display='inline';
         }
@@ -1388,6 +1391,7 @@ function startWeatherListener(){
     .onSnapshot(snap=>{
       snap.docChanges().forEach(ch=>{
         if(ch.type==='added'&&ch.doc.data().senderId!==myId){
+          hasNewMsg=true;
           const wb=document.getElementById('w-msg-badge');
           if(wb)wb.style.display='inline';
         }
@@ -1508,6 +1512,7 @@ function listenM(){
         if(!isMe){
           chatUnread++;
           // 날씨화면 스마일 표시
+          hasNewMsg=true;
           const wb=document.getElementById('w-msg-badge');
           if(wb)wb.style.display='inline';
           sendWeatherNotif();
