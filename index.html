@@ -1453,7 +1453,7 @@ async function sendImage(input){
 }
 function listenM(){
   if(unsubM)unsubM();
-  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(30).onSnapshot(async snap=>{
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(3).onSnapshot(async snap=>{
     const changes=[...snap.docChanges()].reverse();
     for(const ch of changes){
       if(ch.type==='added'){
