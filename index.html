@@ -1452,16 +1452,18 @@ let firstLoadM=false;
 function listenM(){
   if(unsubM)unsubM();
   firstLoadM=true;
+  let frag=document.createDocumentFragment();
   unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').onSnapshot(async snap=>{
     const changes=[...snap.docChanges()].reverse();
+    const isFirst=firstLoadM;
+    const msgs=document.getElementById('msgs');
     for(const ch of changes){
       if(ch.type==='added'){
-        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
+        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`)||frag.querySelector(`[data-m="${id}"]`))continue;
         const d=ch.doc.data(),isMe=d.senderId===myId;
         const txt=await DEC(d.enc,secretKey);
         const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
         document.getElementById('e-chat').style.display='none';
-        const msgs=document.getElementById('msgs');
         // 1. 내말 오른쪽, 상대방 왼쪽
         const w=document.createElement('div');
         w.setAttribute('data-m',id);
@@ -1501,14 +1503,23 @@ function listenM(){
         row.appendChild(b);row.appendChild(tm);
         w.appendChild(row);
         if(isMe) w.appendChild(readMark);
-        // 최신 메시지가 DOM 맨 앞에 오도록 삽입 위치 결정 (column-reverse 이므로 맨 앞 = 화면 맨 아래)
-        const existing=[...msgs.children];
-        let inserted=false;
-        for(const el of existing){
-          const elTs=+el.getAttribute('data-ts');
-          if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
+        if(isFirst){
+          // 첫 로드: fragment에 시간순으로 삽입 (화면에는 아직 안 붙임)
+          let inserted=false;
+          for(const el of [...frag.children]){
+            const elTs=+el.getAttribute('data-ts');
+            if(ts.getTime()>elTs){frag.insertBefore(w,el);inserted=true;break;}
+          }
+          if(!inserted)frag.appendChild(w);
+        } else {
+          // 실시간 새 메시지: 바로 화면에 삽입
+          let inserted=false;
+          for(const el of [...msgs.children]){
+            const elTs=+el.getAttribute('data-ts');
+            if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
+          }
+          if(!inserted)msgs.appendChild(w);
         }
-        if(!inserted)msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
           // 날씨화면 스마일 표시
@@ -1530,7 +1541,10 @@ function listenM(){
         if(el&&ch.doc.data().read===true)el.textContent='';
       }
     }
-    firstLoadM=false;
+    if(isFirst){
+      msgs.appendChild(frag);
+      firstLoadM=false;
+    }
   });
 }
 
