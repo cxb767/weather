@@ -106,7 +106,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 .panel.on{display:flex;}
 
 /* Messages */
-.msgs{flex:1;overflow-y:auto;padding:20px 0 8px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;background:#1a1a1a;}
+.msgs{flex:1;overflow-y:auto;padding:20px 0 8px;display:flex;flex-direction:column-reverse;gap:0;-webkit-overflow-scrolling:touch;background:#1a1a1a;}
 .msgs::-webkit-scrollbar{width:4px;}
 .msgs::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px;}
 
@@ -1190,8 +1190,6 @@ function addLongPress(el, cb){
 
 // APP LOCK
 async function initLock(){
-  const pwVer=localStorage.getItem('sl_pw_ver');
-  if(pwVer!=='v4'){localStorage.removeItem(K.PW);localStorage.removeItem(K.AF);localStorage.removeItem(K.AB);localStorage.setItem('sl_pw_ver','v4');}
   const stored=localStorage.getItem(K.PW);
   const blk=+localStorage.getItem(K.AB)||0;
   if(!stored){document.getElementById('al-sub').textContent='비밀번호를 설정하세요';document.getElementById('al-inp').placeholder='새 비밀번호';document.getElementById('al-inp').autocomplete='new-password';}
@@ -1295,12 +1293,6 @@ async function enterRoom(){
   if(unsubWeather){unsubWeather();unsubWeather=null;}
   inRoom=true;startPres();listenM();listenP();listenPr();startIdle();resetIdle();
   markAllRead();
-  const msgs=document.getElementById('msgs');
-  msgs.style.visibility='hidden';
-  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;msgs.style.visibility='visible';},0);
-  setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
-  // 진입 후 맨 아래로 스크롤
-  setTimeout(()=>{const msgs=document.getElementById('msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;},500);
 }
 
 // PRESENCE
@@ -1456,10 +1448,12 @@ async function sendImage(input){
     reader.readAsArrayBuffer(file);
   }catch(e){toast('전송 실패');}
 }
+let firstLoadM=false;
 function listenM(){
   if(unsubM)unsubM();
-  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','asc').onSnapshot(async snap=>{
-    const changes=snap.docChanges();
+  firstLoadM=true;
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').onSnapshot(async snap=>{
+    const changes=[...snap.docChanges()].reverse();
     for(const ch of changes){
       if(ch.type==='added'){
         const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
@@ -1468,15 +1462,10 @@ function listenM(){
         const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
         document.getElementById('e-chat').style.display='none';
         const msgs=document.getElementById('msgs');
-        const dateStr=ts.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-        const lastDate=msgs.getAttribute('data-last-date');
-        if(lastDate!==dateStr){
-          msgs.setAttribute('data-last-date',dateStr);
-          const dd=document.createElement('div');dd.className='date-div';dd.textContent=dateStr;msgs.appendChild(dd);
-        }
         // 1. 내말 오른쪽, 상대방 왼쪽
         const w=document.createElement('div');
         w.setAttribute('data-m',id);
+        w.setAttribute('data-ts',ts.getTime());
         w.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin:4px 12px;`;
         // 2. 이름 전체 표시
         if(!isMe){
@@ -1512,7 +1501,14 @@ function listenM(){
         row.appendChild(b);row.appendChild(tm);
         w.appendChild(row);
         if(isMe) w.appendChild(readMark);
-        msgs.appendChild(w);
+        // 최신 메시지가 DOM 맨 앞에 오도록 삽입 위치 결정 (column-reverse 이므로 맨 앞 = 화면 맨 아래)
+        const existing=[...msgs.children];
+        let inserted=false;
+        for(const el of existing){
+          const elTs=+el.getAttribute('data-ts');
+          if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
+        }
+        if(!inserted)msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
           // 날씨화면 스마일 표시
@@ -1522,15 +1518,8 @@ function listenM(){
           sendWeatherNotif();
           // 내가 채팅방 안에 있으면 즉시 읽음 처리
           if(inRoom)markAllRead();
-          // 상대방 메시지 ts 이전의 내 메시지 1 모두 제거 (합집합)
-          const peerTs=d.ts?d.ts.seconds*1000:Date.now();
-          document.querySelectorAll('[data-read-m]').forEach(el=>{
-            const msgEl=el.closest('[data-m]');
-            if(!msgEl)return;
-            const msgTsStr=msgEl.querySelector('.mtime')?.textContent;
-            // ts 비교: 상대방 메시지보다 이전에 보낸 내 메시지 1 제거
-            if(msgTsStr) el.textContent='';
-          });
+          // 상대방 메시지 이전의 내 메시지 1 모두 제거 (합집합)
+          document.querySelectorAll('[data-read-m]').forEach(el=>{el.textContent='';});
         }
       }
       // 4. 개별 삭제 removed 이벤트만 처리 (삭제 버튼 없음)
@@ -1541,9 +1530,7 @@ function listenM(){
         if(el&&ch.doc.data().read===true)el.textContent='';
       }
     }
-    // 5. 항상 맨 아래로
-    const msgs=document.getElementById('msgs');
-    msgs.scrollTop=msgs.scrollHeight;
+    firstLoadM=false;
   });
 }
 
@@ -1585,7 +1572,7 @@ function toPanel(p){
   document.getElementById('p-board').className='panel'+(p==='board'?' on':'');
   document.getElementById('t-chat').className='tab'+(p==='chat'?' on':'');
   document.getElementById('t-board').className='tab'+(p==='board'?' on':'');
-  if(p==='chat'){chatUnread=0;document.getElementById('msgs').scrollTop=99999;}
+  if(p==='chat'){chatUnread=0;document.getElementById('msgs').scrollTop=0;}
   if(p==='board'){boardUnread=0;document.getElementById('b-board').style.display='none';document.getElementById('posts').scrollTop=99999;}
   resetIdle();
 }
