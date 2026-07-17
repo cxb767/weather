@@ -697,19 +697,13 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
       <div class="s-divider"></div>
 
       <div class="s-section">
-        <div class="s-label">홈화면 설치</div>
-        <button class="s-btn s-btn-b" id="s-install" onclick="doInstall()" style="display:none">홈화면에 추가</button>
-        <div class="s-note" id="s-install-guide"></div>
+        <div class="s-label">개발자 설정</div>
+        <div class="s-note" style="margin-bottom:8px">주인 아이디를 설정하면 기록 삭제 후에도 내 글이 오른쪽에 고정돼요</div>
+        <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
+        <div class="s-err" id="s-owner-err"></div>
+        <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
       </div>
 
-      <div class="s-divider"></div>
-      <div class="s-section">
-        <div class="s-label">데이터 삭제</div>
-        <div class="s-note">방의 모든 메시지를 양쪽에서 삭제해요</div>
-        <button class="s-btn s-btn-r" style="margin-bottom:10px" onclick="closeSheet();openEmergency()">방 전체 삭제</button>
-      </div>
-      <div class="s-divider"></div>
-      <button class="s-btn s-btn-r" onclick="resetAll()">앱 초기화</button>
     </div>
   </div>
 </div>
@@ -1419,6 +1413,15 @@ async function markAllRead(){
       document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
     }
   }catch(e){console.warn('markAllRead:',e);}
+}
+
+function saveOwnerId(){
+  const v=document.getElementById('s-owner-id').value.trim();
+  if(!v){document.getElementById('s-owner-err').textContent='아이디를 입력하세요';return;}
+  localStorage.setItem('my_uid',v);
+  myId=v;
+  document.getElementById('s-owner-err').textContent='';
+  toast('주인 아이디 저장됨');
 }
 
 // 설정 버튼 알림 초기화
