@@ -1,4 +1,4 @@
-const CACHE = 'running-v21';
+const CACHE = 'running-v22';
 const STATIC = ['/weather/', '/weather/index.html', '/weather/manifest.json', '/weather/icon-192.png', '/weather/icon-512.png'];
 
 self.addEventListener('install', e => {
