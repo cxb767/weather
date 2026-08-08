@@ -424,6 +424,12 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         </div>
       </div>
 
+      <!-- 시간별 예보 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">시간별 예측</div>
+        <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
+      </div>
+
       <!-- 생활지수 -->
       <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
         <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">생활 지수</div>
@@ -455,18 +461,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         </div>
       </div>
 
-      <!-- 시간별 기온 그래프 -->
-      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;letter-spacing:1px;">시간별 기온 변화</div>
-        <div id="w-temp-graph" style="width:100%;overflow-x:auto;"></div>
-      </div>
-
-      <!-- 시간별 예보 -->
-      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">시간별 예측</div>
-        <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:4px;" id="w-hourly"></div>
-      </div>
-
       <!-- 주간 예보 -->
       <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -491,7 +485,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 01:33</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 07:01</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -890,29 +884,6 @@ function setBg(code){
   document.getElementById('w-bg').style.background=bg;
   document.getElementById('w-deco').textContent=WX_ICON[code]||'☀️';
 }
-// 시간별 기온 꺾은선 SVG 그래프 (24시간)
-function drawTempGraph(hourly,startIdx){
-  const wrap=document.getElementById('w-temp-graph');
-  if(!wrap)return;
-  const count=Math.min(24,hourly.time.length-startIdx);
-  const temps=[];
-  for(let i=startIdx;i<startIdx+count;i++)temps.push(hourly.temperature_2m[i]);
-  const max=Math.max(...temps),min=Math.min(...temps);
-  const range=(max-min)||1;
-  const stepW=56,padY=18,graphH=64;
-  const w=stepW*count,h=graphH+padY*2;
-  const pts=temps.map((t,i)=>{
-    const x=stepW*i+stepW/2;
-    const y=padY+graphH-((t-min)/range*graphH);
-    return {x,y,t};
-  });
-  const pathD=pts.map((p,i)=>(i===0?'M':'L')+p.x+','+p.y).join(' ');
-  const dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3" fill="#fff"/><text x="${p.x}" y="${p.y-10}" fill="#fff" font-size="11" text-anchor="middle" font-weight="600">${Math.round(p.t)}°</text>`).join('');
-  wrap.innerHTML=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;">
-    <path d="${pathD}" fill="none" stroke="#90caf9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}
-  </svg>`;
-}
 
 async function loadMainWeather(lat,lon,locName){
   if(!lat){
@@ -1015,8 +986,6 @@ async function loadMainWeather(lat,lon,locName){
       <div style="font-size:10px;color:rgba(255,255,255,0.4)">💨${wind}</div>
     </div>`;
   }
-  // 시간별 기온 꺾은선 그래프
-  drawTempGraph(hourly,startIdx);
   // 일별 - 온도 바 그래프 추가
   const ww=document.getElementById('w-weekly');ww.innerHTML='';
   document.getElementById('w-forecast-days').textContent=(daily.time?.length||7)+' 일';
