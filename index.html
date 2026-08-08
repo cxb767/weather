@@ -435,7 +435,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 00:02</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 00:20</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -664,6 +664,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div class="s-label">연결 정보</div>
         <div class="s-info-row"><span class="s-info-label">이름</span><span class="s-info-val" id="si-name"></span></div>
         <div class="s-info-row"><span class="s-info-label">방 코드</span><span class="s-info-val" id="si-code"></span></div>
+        <div class="s-info-row"><span class="s-info-label">암호키</span><span class="s-info-val" id="si-secret" style="word-break:break-all;"></span></div>
         <div class="s-note" style="margin-top:8px">변경하면 상대방도 동일하게 바꿔야 해요</div>
         <input class="s-inp" type="text" id="s-name" placeholder="새 이름" maxlength="20" style="margin-top:8px" autocomplete="off">
         <input class="s-inp" type="text" id="s-code" placeholder="새 방 코드" maxlength="20" style="text-transform:uppercase;letter-spacing:2px" autocomplete="off">
@@ -700,6 +701,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
       <div class="s-section">
         <div class="s-label">개발자 설정</div>
         <div class="s-note" style="margin-bottom:8px">주인 아이디를 설정하면 기록 삭제 후에도 내 글이 오른쪽에 고정돼요</div>
+        <div class="s-note" style="margin-bottom:8px">현재 저장된 값: <span id="si-owner" style="color:#e5e5e5;font-weight:600;"></span></div>
         <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
         <div class="s-err" id="s-owner-err"></div>
         <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
@@ -1639,6 +1641,8 @@ async function authSheet(){
   const s=JSON.parse(localStorage.getItem(K.SU)||'{}');
   document.getElementById('si-name').textContent=s.name||'-';
   document.getElementById('si-code').textContent=s.code||'-';
+  document.getElementById('si-secret').textContent=s.secret||'-';
+  document.getElementById('si-owner').textContent=localStorage.getItem('my_uid')||'(자동생성됨, 저장 안 함)';
   ['s-name','s-code','s-c1','s-c2','s-sec'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['s-pw-err','s-rm-err'].forEach(id=>{const el=document.getElementById(id);el.style.display='none';});
   const idleSel=document.getElementById('idle-sel');if(idleSel)idleSel.value=String(idleLimit);
