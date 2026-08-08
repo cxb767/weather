@@ -364,12 +364,14 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
           <div style="font-size:28px;color:#fff;margin-top:10px;font-weight:200;">°</div>
           <div style="font-size:20px;color:rgba(255,255,255,0.7);margin-top:18px;font-weight:300;">C</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">
           <span style="color:#ff7043;font-size:14px;">↑ <span id="w-max">--</span>°</span>
           <span style="color:#90caf9;font-size:14px;">↓ <span id="w-min">--</span>°</span>
           <span style="color:rgba(255,255,255,0.6);font-size:13px;">체감 <span id="w-feel">--</span>°</span>
         </div>
+        <div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.45);">체감 최고 <span id="w-feel-max">--</span>° · 체감 최저 <span id="w-feel-min">--</span>°</div>
         <div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);" id="w-rain-msg"></div>
+        <div style="margin-top:4px;font-size:13px;color:#ffd54f;font-weight:500;" id="w-summary"></div>
       </div>
 
       <!-- 핵심 지표 -->
@@ -485,7 +487,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 07:01</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 07:22</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -819,7 +821,7 @@ let devPressTimer=null;
 
 async function fetchWeather(lat,lon){
   try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,precipitation,surface_pressure&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,precipitation_sum&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,visibility&timezone=Asia%2FSeoul&forecast_days=14`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,precipitation,surface_pressure&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,precipitation_sum,snowfall_sum&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,precipitation,snowfall,wind_speed_10m,visibility&timezone=Asia%2FSeoul&forecast_days=14`);
     return await r.json();
   }catch{return null;}
 }
@@ -879,6 +881,41 @@ function getClothingRec(feel){
   if(feel>=5)return{txt:'코트, 목도리',emoji:'🧣'};
   return{txt:'패딩, 두꺼운 코트',emoji:'🧤'};
 }
+// 오늘 날씨 한 줄 요약
+function buildWeatherSummary(d,daily,c){
+  const rainProb=daily.precipitation_probability_max[0]||0;
+  const maxT=daily.temperature_2m_max[0];
+  const minT=daily.temperature_2m_min[0];
+  const snowSum=daily.snowfall_sum?.[0]||0;
+  const todayCode=daily.weather_code[0];
+  const isSnowyToday=[71,73,75,77,85,86].includes(todayCode);
+  let peakHour=null,peakProb=-1;
+  const todayStr=new Date().toDateString();
+  d.hourly.time.forEach((t,i)=>{
+    if(new Date(t).toDateString()===todayStr){
+      const p=d.hourly.precipitation_probability[i]||0;
+      if(p>peakProb){peakProb=p;peakHour=new Date(t).getHours();}
+    }
+  });
+  function timeOfDay(h){
+    if(h==null)return'';
+    if(h<6)return'새벽';
+    if(h<12)return'오전';
+    if(h<18)return'오후';
+    return'저녁';
+  }
+  if(isSnowyToday&&snowSum>0.1)return`${timeOfDay(peakHour)}에 눈이 내릴 수 있어요 · 미끄럼 주의하세요`;
+  if(rainProb>=60)return`${timeOfDay(peakHour)}에 비 소식이 있어요 · 우산을 꼭 챙기세요`;
+  if(rainProb>=30)return`${timeOfDay(peakHour)}에 비가 올 수 있어요 · 우산을 챙기면 좋아요`;
+  if(maxT>=33)return'폭염 수준의 더위예요 · 수분 섭취와 휴식이 필요해요';
+  if(maxT>=30)return'무더운 하루예요 · 야외활동은 자제하는 게 좋아요';
+  if(minT<=-10)return'한파 수준의 추위예요 · 방한에 신경쓰세요';
+  if(minT<=0)return'쌀쌀한 하루예요 · 따뜻하게 입고 나가세요';
+  const windList=(d.hourly.wind_speed_10m||[]).slice(0,24);
+  const maxWind=windList.length?Math.max(...windList):0;
+  if(maxWind>=10)return'바람이 강하게 불어요 · 외출 시 유의하세요';
+  return'쾌적하고 좋은 날씨예요';
+}
 function setBg(code){
   const bg=WX_BG[code]||WX_BG[Math.floor(code/10)*10]||WX_BG[0];
   document.getElementById('w-bg').style.background=bg;
@@ -920,9 +957,12 @@ async function loadMainWeather(lat,lon,locName){
   document.getElementById('w-max').textContent=Math.round(daily.temperature_2m_max[0]);
   document.getElementById('w-min').textContent=Math.round(daily.temperature_2m_min[0]);
   document.getElementById('w-feel').textContent=Math.round(c.apparent_temperature);
+  document.getElementById('w-feel-max').textContent=daily.apparent_temperature_max?Math.round(daily.apparent_temperature_max[0]):'--';
+  document.getElementById('w-feel-min').textContent=daily.apparent_temperature_min?Math.round(daily.apparent_temperature_min[0]):'--';
   const rain=c.precipitation_probability||daily.precipitation_probability_max[0]||0;
   const rainMm=c.precipitation||0;
   document.getElementById('w-rain-msg').textContent=rain>0?`강수확률 ${rain}%`+(rainMm>0?` · ${rainMm}mm`:''):'당분간 강수 없음';
+  document.getElementById('w-summary').textContent=buildWeatherSummary(d,daily,c);
   document.getElementById('w-rain').textContent=rain+'%';
   document.getElementById('w-rain-mm').textContent=rainMm>0?rainMm+'mm':'';
   document.getElementById('w-humid').textContent=c.relative_humidity_2m+'%';
@@ -974,6 +1014,9 @@ async function loadMainWeather(lat,lon,locName){
     const tmp=Math.round(hourly.temperature_2m[i]);
     const feel=Math.round(hourly.apparent_temperature[i]);
     const rn=hourly.precipitation_probability[i]||0;
+    const snowCm=hourly.snowfall?.[i]||0; // open-meteo는 cm 단위로 제공
+    const isSnowy=[71,73,75,77,85,86].includes(hourly.weather_code[i]);
+    const amountTxt=isSnowy&&snowCm>0.05?`❄️${snowCm.toFixed(1)}cm`:(hourly.precipitation?.[i]>0.05?`🌧️${hourly.precipitation[i].toFixed(1)}mm`:'');
     const wind=Math.round(hourly.wind_speed_10m[i]);
     const t=new Date(hourly.time[i]);
     const label=i===startIdx?'지금':`${t.getHours()}시`;
@@ -983,6 +1026,7 @@ async function loadMainWeather(lat,lon,locName){
       <div style="font-size:13px;color:#fff;font-weight:600">${tmp}°</div>
       <div style="font-size:10px;color:rgba(255,255,255,0.5)">체감 ${feel}°</div>
       ${rn>0?`<div style="font-size:10px;color:#90caf9">🌂${rn}%</div>`:'<div style="font-size:10px;color:transparent">0%</div>'}
+      <div style="font-size:9px;color:#90caf9;min-height:12px;">${amountTxt}</div>
       <div style="font-size:10px;color:rgba(255,255,255,0.4)">💨${wind}</div>
     </div>`;
   }
@@ -1003,13 +1047,16 @@ async function loadMainWeather(lat,lon,locName){
     const mn=Math.round(allMin[i]);
     const rn=daily.precipitation_probability_max[i]||0;
     const prec=daily.precipitation_sum?.[i]||0;
+    const snow=daily.snowfall_sum?.[i]||0;
+    const isSnowyDay=[71,73,75,77,85,86].includes(daily.weather_code[i]);
+    const amountTxt=isSnowyDay&&snow>0.05?`❄️${snow.toFixed(1)}cm`:(prec>0?`💧${prec.toFixed(1)}mm`:(rn>0?`🌂${rn}%`:''));
     const barLeft=((allMin[i]-globalMin)/range*100).toFixed(0);
     const barWidth=((allMax[i]-allMin[i])/range*100).toFixed(0);
     ww.innerHTML+=`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08);gap:4px;">
       <div style="width:36px;font-size:13px;color:rgba(255,255,255,0.9);font-weight:${i===0?'700':'400'}">${day}</div>
       <div style="width:30px;font-size:10px;color:rgba(255,255,255,0.35)">${dateStr}</div>
       <div style="font-size:18px;width:26px">${ic}</div>
-      <div style="width:34px;font-size:10px;color:#90caf9;text-align:center">${rn>0?`🌂${rn}%`:prec>0?`💧${prec}mm`:''}</div>
+      <div style="width:40px;font-size:10px;color:#90caf9;text-align:center">${amountTxt}</div>
       <div style="flex:1;display:flex;align-items:center;position:relative;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;">
         <div style="position:absolute;left:${barLeft}%;width:${barWidth}%;height:100%;background:linear-gradient(90deg,#90caf9,#ff8a65);border-radius:2px;"></div>
       </div>

@@ -1,4 +1,4 @@
-const CACHE = 'weather-v14';
+const CACHE = 'weather-v16';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(clients.claim()));
 self.addEventListener('fetch', e => {
