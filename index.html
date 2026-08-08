@@ -1655,6 +1655,19 @@ async function initApp(){
   showWeather();
 }
 
+// 앱 전환(멀티태스킹 화면) 시 내용 가리기 - 스크린샷/미리보기 노출 방지
+document.addEventListener('visibilitychange',()=>{
+  const sch=document.getElementById('sch');
+  const weatherScreen=document.getElementById('weather-screen');
+  if(document.hidden){
+    if(sch)sch.style.filter='blur(20px)';
+    if(weatherScreen)weatherScreen.style.filter='blur(20px)';
+  } else {
+    if(sch)sch.style.filter='none';
+    if(weatherScreen)weatherScreen.style.filter='none';
+  }
+});
+
 window.addEventListener('load',()=>{initApp();});
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
