@@ -162,7 +162,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 .sheet-handle{width:36px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 22px;}
 .sheet-title{font-size:18px;font-weight:700;margin-bottom:22px;color:var(--text);}
 .s-section{margin-bottom:22px;}
-.s-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.s-label{font-size:11px;color:#c8c8c8;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
 .s-inp{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;width:100%;margin-bottom:10px;transition:border-color .2s;font-family:inherit;}
 .s-inp:focus{border-color:var(--text3);}
 .s-inp::placeholder{color:var(--text3);}
@@ -173,9 +173,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 .s-btn-r{background:rgba(192,57,43,.08);color:var(--red-bright);border:1px solid rgba(192,57,43,.2);}
 .s-err{font-size:12px;color:var(--red-bright);margin-top:6px;display:none;}
 .s-divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
-.s-note{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:10px;}
+.s-note{font-size:12px;color:#c8c8c8;line-height:1.7;margin-bottom:10px;}
 .s-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
-.s-info-label{font-size:12px;color:var(--text3);}
+.s-info-label{font-size:12px;color:#c8c8c8;}
 .s-info-val{font-size:14px;color:var(--text);font-weight:500;}
 
 /* Toast */
@@ -432,9 +432,10 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
 <div id="dev-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
   <div style="background:#1a1a1a;border-radius:20px;padding:28px 24px;width:88%;max-width:320px;border:1px solid #2a2a2a;text-align:center;">
     <div style="font-size:28px;margin-bottom:12px;">🔒</div>
-    <div style="font-size:16px;font-weight:700;color:#e0e0e0;margin-bottom:8px;">개발자 전용 메뉴</div>
-    <div style="font-size:13px;color:#666;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
-    <div style="font-size:12px;color:#444;margin-bottom:20px;">문의: weatherkit-dev@gmail.com</div>
+    <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
+    <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
+    <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 00:02</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -702,7 +703,6 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
         <div class="s-err" id="s-owner-err"></div>
         <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
-        <div class="s-note" style="margin-top:14px;color:#e5e5e5;font-size:12px;">파일 버전: 2026-08-08 14:53</div>
       </div>
 
     </div>
