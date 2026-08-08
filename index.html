@@ -702,6 +702,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
         <div class="s-err" id="s-owner-err"></div>
         <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
+        <div class="s-note" style="margin-top:14px;opacity:0.5;font-size:11px;">파일 버전: 2026-08-08 14:28</div>
       </div>
 
     </div>
@@ -1120,13 +1121,6 @@ async function hPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEn
 
 // CAPTURE
 document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const o=document.getElementById('cap');o.style.display='flex';setTimeout(()=>o.style.display='none',2500);}});
-document.addEventListener('visibilitychange',()=>{
-  if(!inRoom)return;
-  const blur=document.hidden?'blur(24px)':'';
-  document.getElementById('msgs').style.filter=blur;
-  document.getElementById('posts').style.filter=blur;
-  if(!document.hidden&&!unsubM)reconnect();
-});
 function reconnect(){if(!db||!roomId)return;if(unsubM){unsubM();unsubM=null;}if(unsubP){unsubP();unsubP=null;}if(unsubPr){unsubPr();unsubPr=null;}listenM();listenP();listenPr();}
 
 // DELETE CONFIRM
@@ -1325,7 +1319,7 @@ async function sendMsg(){
   await db.collection('rooms').doc(roomId).collection('messages').add({enc,senderId:myId,senderName:myName,ts:firebase.firestore.FieldValue.serverTimestamp(),type:'text',read:false});
 }
 
-async function doWeatherRefresh(){
+async function hardRefresh(){
   toast('업데이트 중...');
   if('serviceWorker' in navigator){
     const regs=await navigator.serviceWorker.getRegistrations();
@@ -1333,21 +1327,20 @@ async function doWeatherRefresh(){
   }
   const keys=await caches.keys();
   for(const key of keys)await caches.delete(key);
-  location.reload(true);
+  // location.reload(true)는 최신 브라우저에서 무시될 수 있어, 캐시버스터 쿼리로 강제 재요청
+  const url=new URL(location.href);
+  url.searchParams.set('_r',Date.now());
+  location.href=url.toString();
+}
+async function doWeatherRefresh(){
+  await hardRefresh();
 }
 
 // 날씨화면 온도 길게 누르기 → 앱 업데이트
 let wRefreshTimer=null;
 function wRefreshStart(){
   wRefreshTimer=setTimeout(async()=>{
-    toast('앱 업데이트 중...');
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations();
-      for(const reg of regs)await reg.unregister();
-    }
-    const keys=await caches.keys();
-    for(const key of keys)await caches.delete(key);
-    location.reload(true);
+    await hardRefresh();
   },1500);
 }
 function wRefreshEnd(){
@@ -1449,6 +1442,23 @@ async function sendImage(input){
   }catch(e){toast('전송 실패');}
 }
 let firstLoadM=false;
+function dateLabel(ts){
+  const now=new Date();
+  const d=new Date(ts.getFullYear(),ts.getMonth(),ts.getDate());
+  const t=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const diff=(t-d)/86400000;
+  if(diff===0)return '오늘';
+  if(diff===1)return '어제';
+  return `${ts.getFullYear()}년 ${ts.getMonth()+1}월 ${ts.getDate()}일`;
+}
+function insertDateDiv(container,ts,beforeEl){
+  const div=document.createElement('div');
+  div.className='date-div';
+  div.setAttribute('data-date',ts.toDateString());
+  div.textContent=dateLabel(ts);
+  if(beforeEl)container.insertBefore(div,beforeEl);
+  else container.appendChild(div);
+}
 function listenM(){
   if(unsubM)unsubM();
   firstLoadM=true;
@@ -1507,6 +1517,7 @@ function listenM(){
           // 첫 로드: fragment에 시간순으로 삽입 (화면에는 아직 안 붙임)
           let inserted=false;
           for(const el of [...frag.children]){
+            if(!el.hasAttribute('data-ts'))continue;
             const elTs=+el.getAttribute('data-ts');
             if(ts.getTime()>elTs){frag.insertBefore(w,el);inserted=true;break;}
           }
@@ -1515,10 +1526,12 @@ function listenM(){
           // 실시간 새 메시지: 바로 화면에 삽입
           let inserted=false;
           for(const el of [...msgs.children]){
+            if(!el.hasAttribute('data-ts'))continue;
             const elTs=+el.getAttribute('data-ts');
             if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
           }
           if(!inserted)msgs.appendChild(w);
+          rebuildDateDivs(msgs);
         }
         if(!isMe){
           chatUnread++;
@@ -1544,8 +1557,27 @@ function listenM(){
     if(isFirst){
       msgs.appendChild(frag);
       firstLoadM=false;
+      rebuildDateDivs(msgs);
     }
   });
+}
+
+// column-reverse 구조에서 날짜 바뀌는 지점마다 구분선 삽입 (DOM 순서: 최신이 앞, 오래된게 뒤)
+function rebuildDateDivs(msgs){
+  msgs.querySelectorAll('.date-div').forEach(el=>el.remove());
+  const items=[...msgs.children].filter(el=>el.hasAttribute('data-ts'));
+  // items[0] = 최신, items[끝] = 가장 오래됨
+  let prevDateStr=null; // 화면상 바로 위(더 최신 방향)의 날짜
+  for(let i=0;i<items.length;i++){
+    const el=items[i];
+    const ts=new Date(+el.getAttribute('data-ts'));
+    const dStr=ts.toDateString();
+    if(dStr!==prevDateStr){
+      // 이 메시지보다 오래된 방향(뒤)에 구분선 삽입 = 이 메시지 뒤(다음 형제)
+      insertDateDiv(msgs,ts,el.nextSibling);
+    }
+    prevDateStr=dStr;
+  }
 }
 
 // POSTS
@@ -1652,21 +1684,56 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/weather/sw.j
 
 // 앱 시작
 async function initApp(){
+  // 저장된 로그인 정보 있으면 채팅방 진입 전에도 Firebase 연결해서 새메시지 감지 가능하게
+  try{
+    const su=localStorage.getItem(K.SU);
+    if(su){
+      if(!db){firebase.initializeApp(FIREBASE_CFG);db=firebase.firestore();}
+      const s=JSON.parse(su);
+      roomId=s.code.toUpperCase();
+      if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
+    }
+  }catch(e){console.error(e);}
   showWeather();
 }
 
-// 앱 전환(멀티태스킹 화면) 시 내용 가리기 - 스크린샷/미리보기 노출 방지
-document.addEventListener('visibilitychange',()=>{
-  const sch=document.getElementById('sch');
-  const weatherScreen=document.getElementById('weather-screen');
-  if(document.hidden){
-    if(sch)sch.style.filter='blur(20px)';
-    if(weatherScreen)weatherScreen.style.filter='blur(20px)';
-  } else {
+// 앱 전환(최근 앱 목록/멀티태스킹) 시 내용 즉시 가리기 - 스크린샷/미리보기 노출 방지
+// 오버레이 방식: filter보다 반응이 빠르고 확실함. blur 이벤트가 visibilitychange보다 먼저 발생하는 경우가 많아 같이 사용.
+(function(){
+  const ov=document.createElement('div');
+  ov.id='privacy-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#0a1628;display:none;';
+  document.body.appendChild(ov);
+  function hidePrivacy(){
+    ov.style.display='flex';
+    const sch=document.getElementById('sch');
+    const weatherScreen=document.getElementById('weather-screen');
+    if(sch)sch.style.filter='blur(24px)';
+    if(weatherScreen)weatherScreen.style.filter='blur(24px)';
+    if(inRoom){
+      const m=document.getElementById('msgs'),p=document.getElementById('posts');
+      if(m)m.style.filter='blur(24px)';
+      if(p)p.style.filter='blur(24px)';
+    }
+  }
+  function showPrivacy(){
+    ov.style.display='none';
+    const sch=document.getElementById('sch');
+    const weatherScreen=document.getElementById('weather-screen');
     if(sch)sch.style.filter='none';
     if(weatherScreen)weatherScreen.style.filter='none';
+    const m=document.getElementById('msgs'),p=document.getElementById('posts');
+    if(m)m.style.filter='none';
+    if(p)p.style.filter='none';
+    if(!document.hidden&&inRoom&&!unsubM)reconnect();
   }
-});
+  window.addEventListener('blur',hidePrivacy);
+  window.addEventListener('pagehide',hidePrivacy);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)hidePrivacy();else showPrivacy();
+  });
+  window.addEventListener('focus',showPrivacy);
+})();
 
 window.addEventListener('load',()=>{initApp();});
 </script>
