@@ -487,7 +487,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 07:32</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 08:24</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -757,6 +757,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
         <div class="s-err" id="s-owner-err"></div>
         <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
+        <div class="s-note" style="margin-top:16px;margin-bottom:8px;">기상청 API 연결 테스트 (CORS 확인용)</div>
+        <button class="s-btn s-btn-a" onclick="testKmaApi()">테스트 실행</button>
+        <div id="kma-test-result" style="margin-top:10px;font-size:12px;color:#e5e5e5;white-space:pre-wrap;word-break:break-all;"></div>
       </div>
 
     </div>
@@ -1538,6 +1541,33 @@ async function markAllRead(){
       document.querySelectorAll('[data-read-m]').forEach(el=>el.textContent='');
     }
   }catch(e){console.warn('markAllRead:',e);}
+}
+
+// 기상청 API 연동 테스트 (CORS 확인용) - 서울 좌표(nx=60,ny=127)로 초단기실황 호출
+async function testKmaApi(){
+  const resultEl=document.getElementById('kma-test-result');
+  resultEl.textContent='요청 중...';
+  try{
+    const kstMs=Date.now()+9*60*60*1000;
+    const kst=new Date(kstMs);
+    let h=kst.getUTCHours();
+    const mi=kst.getUTCMinutes();
+    if(mi<40)h=(h+23)%24; // 40분 이전이면 이전 정시 자료 사용
+    const baseTime=String(h).padStart(2,'0')+'00';
+    let y=kst.getUTCFullYear(),mo=kst.getUTCMonth()+1,da=kst.getUTCDate();
+    if(kst.getUTCHours()===0&&mi<40){
+      const prev=new Date(kstMs-24*60*60*1000);
+      y=prev.getUTCFullYear();mo=prev.getUTCMonth()+1;da=prev.getUTCDate();
+    }
+    const baseDate=String(y)+String(mo).padStart(2,'0')+String(da).padStart(2,'0');
+    const key='0eNwmBUFQY-jcJgVBSGPCg';
+    const url=`https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${encodeURIComponent(key)}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=60&ny=127`;
+    const res=await fetch(url);
+    const text=await res.text();
+    resultEl.textContent=`[응답 받음 → CORS는 통과]\nHTTP 상태: ${res.status}\nbase_date:${baseDate} base_time:${baseTime}\n\n${text.slice(0,600)}`;
+  }catch(e){
+    resultEl.textContent=`[요청 자체가 실패함]\n${e.message}\n\n→ CORS 차단이거나 네트워크 문제일 가능성이 높아요.`;
+  }
 }
 
 function saveOwnerId(){
