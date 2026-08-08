@@ -326,7 +326,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <!-- 동적 배경 -->
   <div id="w-bg" style="position:absolute;inset:0;background:#0a1628;z-index:0;transition:background 1s;"></div>
   <!-- 태양/구름 장식 -->
-  <div id="w-deco" style="position:absolute;top:60px;right:20px;font-size:90px;opacity:0.85;z-index:1;line-height:1;filter:drop-shadow(0 4px 20px rgba(255,200,50,0.4));transition:all 1s;"></div>
+  <div id="w-deco" style="position:absolute;top:60px;right:24px;font-size:80px;opacity:0.9;z-index:1;line-height:1;transition:all 1s;"></div>
 
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;overflow:hidden;">
     <!-- 상단 바 -->
@@ -379,6 +379,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
             <div style="font-size:18px;margin-bottom:2px;">🌧️</div>
             <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">강수확률</div>
             <div id="w-rain" style="font-size:18px;font-weight:700;color:#fff;">--%</div>
+            <div id="w-rain-mm" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px;"></div>
           </div>
           <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
             <div style="font-size:18px;margin-bottom:2px;">💧</div>
@@ -396,6 +397,11 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
             <div id="w-dust" style="font-size:18px;font-weight:700;color:#fff;">--</div>
           </div>
           <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">🌁</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">초미세먼지</div>
+            <div id="w-dust25" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
             <div style="font-size:18px;margin-bottom:2px;">☀️</div>
             <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">자외선</div>
             <div id="w-uv" style="font-size:18px;font-weight:700;color:#fff;">--</div>
@@ -405,7 +411,54 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
             <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">일출/일몰</div>
             <div style="font-size:11px;font-weight:700;color:#fff;"><span id="w-sun">--:--</span><br><span id="w-sunset" style="color:rgba(255,255,255,0.7)">--:--</span></div>
           </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">🌡️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">기압</div>
+            <div id="w-pressure" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:16px;padding:12px;text-align:center;backdrop-filter:blur(10px);">
+            <div style="font-size:18px;margin-bottom:2px;">👁️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:3px;">가시거리</div>
+            <div id="w-visibility" style="font-size:18px;font-weight:700;color:#fff;">--</div>
+          </div>
         </div>
+      </div>
+
+      <!-- 생활지수 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;letter-spacing:1px;">생활 지수</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div style="text-align:center;">
+            <div id="w-idx-wash-emoji" style="font-size:20px;margin-bottom:4px;">🧺</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:2px;">빨래지수</div>
+            <div id="w-idx-wash" style="font-size:13px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="text-align:center;">
+            <div id="w-idx-car-emoji" style="font-size:20px;margin-bottom:4px;">🚗</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:2px;">세차지수</div>
+            <div id="w-idx-car" style="font-size:13px;font-weight:700;color:#fff;">--</div>
+          </div>
+          <div style="text-align:center;">
+            <div id="w-idx-umb-emoji" style="font-size:20px;margin-bottom:4px;">☂️</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:2px;">우산지수</div>
+            <div id="w-idx-umb" style="font-size:13px;font-weight:700;color:#fff;">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오늘의 옷차림 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);display:flex;align-items:center;gap:14px;">
+        <div id="w-cloth-emoji" style="font-size:32px;">👕</div>
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px;letter-spacing:1px;">오늘의 옷차림</div>
+          <div id="w-cloth-txt" style="font-size:14px;font-weight:600;color:#fff;">--</div>
+        </div>
+      </div>
+
+      <!-- 시간별 기온 그래프 -->
+      <div style="margin:0 16px 12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:14px 16px;backdrop-filter:blur(10px);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;letter-spacing:1px;">시간별 기온 변화</div>
+        <div id="w-temp-graph" style="width:100%;overflow-x:auto;"></div>
       </div>
 
       <!-- 시간별 예보 -->
@@ -438,7 +491,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 00:39</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 01:22</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -754,26 +807,6 @@ const SEARCH_CITIES=[
 ];
 const DAYS=['일','월','화','수','목','금','토'];
 const WX_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️'};
-const WX_SVG={
-  sun:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><circle cx="32" cy="32" r="14" fill="#FFD93D" stroke="#F4A800" stroke-width="2"/><g stroke="#FFD93D" stroke-width="3" stroke-linecap="round"><line x1="32" y1="4" x2="32" y2="12"/><line x1="32" y1="52" x2="32" y2="60"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="52" y1="32" x2="60" y2="32"/><line x1="11.5" y1="11.5" x2="17" y2="17"/><line x1="47" y1="47" x2="52.5" y2="52.5"/><line x1="52.5" y1="11.5" x2="47" y2="17"/><line x1="17" y1="47" x2="11.5" y2="52.5"/></g></svg>`,
-  cloud_sun:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><circle cx="22" cy="20" r="10" fill="#FFD93D" stroke="#F4A800" stroke-width="1.5"/><g stroke="#FFD93D" stroke-width="2" stroke-linecap="round"><line x1="22" y1="6" x2="22" y2="10"/><line x1="34" y1="20" x2="30" y2="20"/><line x1="30" y1="10" x2="27" y2="13"/></g><ellipse cx="38" cy="38" rx="18" ry="12" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="26" cy="40" rx="12" ry="9" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="46" cy="42" rx="10" ry="8" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/></svg>`,
-  cloud:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="30" rx="20" ry="13" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="22" cy="34" rx="14" ry="10" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="46" cy="36" rx="11" ry="9" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/></svg>`,
-  rain:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="24" rx="20" ry="13" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="14" ry="10" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><ellipse cx="46" cy="30" rx="11" ry="9" fill="#9db8cc" stroke="#7a9ab0" stroke-width="1.5"/><g stroke="#6ab0d4" stroke-width="2.5" stroke-linecap="round"><line x1="24" y1="44" x2="20" y2="54"/><line x1="34" y1="44" x2="30" y2="54"/><line x1="44" y1="44" x2="40" y2="54"/></g></svg>`,
-  snow:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="24" rx="20" ry="13" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><ellipse cx="22" cy="28" rx="14" ry="10" fill="#c8d6e5" stroke="#a0b4c8" stroke-width="1.5"/><g stroke="#a0c8e8" stroke-width="2" stroke-linecap="round"><line x1="24" y1="44" x2="24" y2="56"/><line x1="18" y1="50" x2="30" y2="50"/><line x1="19" y1="45" x2="29" y2="55"/><line x1="29" y1="45" x2="19" y2="55"/><line x1="40" y1="44" x2="40" y2="56"/><line x1="34" y1="50" x2="46" y2="50"/><line x1="35" y1="45" x2="45" y2="55"/><line x1="45" y1="45" x2="35" y2="55"/></g></svg>`,
-  thunder:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><ellipse cx="36" cy="22" rx="20" ry="13" fill="#7a8ea0" stroke="#5a6e80" stroke-width="1.5"/><ellipse cx="22" cy="26" rx="14" ry="10" fill="#7a8ea0" stroke="#5a6e80" stroke-width="1.5"/><polygon points="36,38 28,52 34,52 26,64 44,46 36,46" fill="#FFD93D" stroke="#F4A800" stroke-width="1"/></svg>`,
-  fog:`<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56"><g stroke="#a0b4c8" stroke-width="3" stroke-linecap="round"><line x1="10" y1="20" x2="54" y2="20"/><line x1="14" y1="30" x2="50" y2="30"/><line x1="10" y1="40" x2="54" y2="40"/><line x1="14" y1="50" x2="50" y2="50"/></g></svg>`,
-};
-function getWxSvg(code){
-  if(code===0)return WX_SVG.sun;
-  if(code<=2)return WX_SVG.cloud_sun;
-  if(code<=3)return WX_SVG.cloud;
-  if(code<=48)return WX_SVG.fog;
-  if(code<=55)return WX_SVG.rain;
-  if(code<=65)return WX_SVG.rain;
-  if(code<=75)return WX_SVG.snow;
-  if(code<=82)return WX_SVG.rain;
-  return WX_SVG.thunder;
-}
 const WX_DESC={0:'대체로 화창',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우'};
 // 날씨별 배경 그라데이션
 const WX_BG={
@@ -792,13 +825,13 @@ let devPressTimer=null;
 
 async function fetchWeather(lat,lon){
   try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,precipitation_sum&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m&timezone=Asia%2FSeoul&forecast_days=14`);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,precipitation,surface_pressure&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,uv_index_max,precipitation_probability_max,precipitation_sum&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,visibility&timezone=Asia%2FSeoul&forecast_days=14`);
     return await r.json();
   }catch{return null;}
 }
 async function fetchAirQuality(lat,lon){
   try{
-    const r=await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,uv_index&timezone=Asia%2FSeoul`);
+    const r=await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,uv_index&timezone=Asia%2FSeoul`);
     return await r.json();
   }catch{return null;}
 }
@@ -809,6 +842,13 @@ function getDustLevel(pm10){
   if(pm10<=150)return{txt:'나쁨',color:'#ffcc80'};
   return{txt:'매우나쁨',color:'#ef9a9a'};
 }
+function getPm25Level(pm25){
+  if(pm25==null)return{txt:'--',color:'rgba(255,255,255,0.7)'};
+  if(pm25<=15)return{txt:'좋음',color:'#80deea'};
+  if(pm25<=35)return{txt:'보통',color:'#a5d6a7'};
+  if(pm25<=75)return{txt:'나쁨',color:'#ffcc80'};
+  return{txt:'매우나쁨',color:'#ef9a9a'};
+}
 function getUVLevel(uv){
   if(uv==null)return'--';
   if(uv<3)return uv.toFixed(1)+' 낮음';
@@ -817,10 +857,61 @@ function getUVLevel(uv){
   if(uv<11)return uv.toFixed(1)+' 매우높음';
   return uv.toFixed(1)+' 위험';
 }
+// 생활지수: 있는 데이터(강수확률, 습도, 풍속, 미세먼지)로 자체 계산
+function getWashIndex(rainProb,humid){ // 빨래지수
+  if(rainProb>=40)return{txt:'나쁨',emoji:'🚫',color:'#ef9a9a'};
+  if(rainProb>=15||humid>=75)return{txt:'보통',emoji:'⚠️',color:'#ffcc80'};
+  return{txt:'좋음',emoji:'✅',color:'#a5d6a7'};
+}
+function getCarWashIndex(rainProb){ // 세차지수
+  if(rainProb>=40)return{txt:'비추천',emoji:'🚫',color:'#ef9a9a'};
+  if(rainProb>=15)return{txt:'보통',emoji:'⚠️',color:'#ffcc80'};
+  return{txt:'추천',emoji:'✅',color:'#a5d6a7'};
+}
+function getUmbrellaIndex(rainProb){ // 우산지수
+  if(rainProb>=60)return{txt:'필수',emoji:'☔',color:'#ef9a9a'};
+  if(rainProb>=30)return{txt:'챙기세요',emoji:'🌂',color:'#ffcc80'};
+  return{txt:'필요없음',emoji:'☀️',color:'#a5d6a7'};
+}
+// 옷차림 추천: 체감온도 기준
+function getClothingRec(feel){
+  if(feel==null)return{txt:'--',emoji:'👕'};
+  if(feel>=28)return{txt:'민소매, 반팔, 반바지',emoji:'👕'};
+  if(feel>=23)return{txt:'반팔, 얇은 셔츠, 반바지',emoji:'👔'};
+  if(feel>=20)return{txt:'얇은 가디건, 긴바지',emoji:'🧥'};
+  if(feel>=17)return{txt:'가디건, 자켓, 긴바지',emoji:'🧥'};
+  if(feel>=12)return{txt:'자켓, 니트, 청바지',emoji:'🧥'};
+  if(feel>=9)return{txt:'트렌치코트, 니트',emoji:'🧣'};
+  if(feel>=5)return{txt:'코트, 목도리',emoji:'🧣'};
+  return{txt:'패딩, 두꺼운 코트',emoji:'🧤'};
+}
 function setBg(code){
   const bg=WX_BG[code]||WX_BG[Math.floor(code/10)*10]||WX_BG[0];
   document.getElementById('w-bg').style.background=bg;
-  document.getElementById('w-deco').innerHTML=getWxSvg(code);
+  document.getElementById('w-deco').textContent=WX_ICON[code]||'☀️';
+}
+// 시간별 기온 꺾은선 SVG 그래프 (24시간)
+function drawTempGraph(hourly,startIdx){
+  const wrap=document.getElementById('w-temp-graph');
+  if(!wrap)return;
+  const count=Math.min(24,hourly.time.length-startIdx);
+  const temps=[];
+  for(let i=startIdx;i<startIdx+count;i++)temps.push(hourly.temperature_2m[i]);
+  const max=Math.max(...temps),min=Math.min(...temps);
+  const range=(max-min)||1;
+  const stepW=56,padY=18,graphH=64;
+  const w=stepW*count,h=graphH+padY*2;
+  const pts=temps.map((t,i)=>{
+    const x=stepW*i+stepW/2;
+    const y=padY+graphH-((t-min)/range*graphH);
+    return {x,y,t};
+  });
+  const pathD=pts.map((p,i)=>(i===0?'M':'L')+p.x+','+p.y).join(' ');
+  const dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3" fill="#fff"/><text x="${p.x}" y="${p.y-10}" fill="#fff" font-size="11" text-anchor="middle" font-weight="600">${Math.round(p.t)}°</text>`).join('');
+  wrap.innerHTML=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;">
+    <path d="${pathD}" fill="none" stroke="#90caf9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>`;
 }
 
 async function loadMainWeather(lat,lon,locName){
@@ -859,12 +950,34 @@ async function loadMainWeather(lat,lon,locName){
   document.getElementById('w-min').textContent=Math.round(daily.temperature_2m_min[0]);
   document.getElementById('w-feel').textContent=Math.round(c.apparent_temperature);
   const rain=c.precipitation_probability||daily.precipitation_probability_max[0]||0;
-  document.getElementById('w-rain-msg').textContent=rain>0?`강수확률 ${rain}%`:'당분간 강수 없음';
+  const rainMm=c.precipitation||0;
+  document.getElementById('w-rain-msg').textContent=rain>0?`강수확률 ${rain}%`+(rainMm>0?` · ${rainMm}mm`:''):'당분간 강수 없음';
   document.getElementById('w-rain').textContent=rain+'%';
+  document.getElementById('w-rain-mm').textContent=rainMm>0?rainMm+'mm':'';
   document.getElementById('w-humid').textContent=c.relative_humidity_2m+'%';
   document.getElementById('w-wind').textContent=Math.round(c.wind_speed_10m)+' m/s';
   document.getElementById('w-sun').textContent=daily.sunrise[0]?.slice(11,16)||'--:--';
   document.getElementById('w-sunset').textContent=daily.sunset[0]?.slice(11,16)||'--:--';
+  document.getElementById('w-pressure').textContent=c.surface_pressure?Math.round(c.surface_pressure)+'hPa':'--';
+  // 가시거리 (m 단위로 오므로 km로 변환)
+  const nowH0=new Date().getHours();
+  const visIdx=d.hourly.time.findIndex(t=>new Date(t).getHours()===nowH0&&new Date(t).toDateString()===new Date().toDateString());
+  const visM=visIdx>=0?d.hourly.visibility?.[visIdx]:null;
+  document.getElementById('w-visibility').textContent=visM!=null?(visM/1000).toFixed(1)+'km':'--';
+  // 생활지수
+  const wash=getWashIndex(rain,c.relative_humidity_2m);
+  document.getElementById('w-idx-wash').textContent=wash.txt;document.getElementById('w-idx-wash').style.color=wash.color;
+  document.getElementById('w-idx-wash-emoji').textContent=wash.emoji;
+  const carW=getCarWashIndex(rain);
+  document.getElementById('w-idx-car').textContent=carW.txt;document.getElementById('w-idx-car').style.color=carW.color;
+  document.getElementById('w-idx-car-emoji').textContent=carW.emoji;
+  const umb=getUmbrellaIndex(rain);
+  document.getElementById('w-idx-umb').textContent=umb.txt;document.getElementById('w-idx-umb').style.color=umb.color;
+  document.getElementById('w-idx-umb-emoji').textContent=umb.emoji;
+  // 옷차림 추천
+  const cloth=getClothingRec(c.apparent_temperature);
+  document.getElementById('w-cloth-txt').textContent=cloth.txt;
+  document.getElementById('w-cloth-emoji').textContent=cloth.emoji;
   // 바람 방향
   const windDir=c.wind_direction_10m;
   const dirs=['N','NE','E','SE','S','SW','W','NW'];
@@ -874,6 +987,9 @@ async function loadMainWeather(lat,lon,locName){
     const dust=getDustLevel(aq.current?.pm10);
     document.getElementById('w-dust').textContent=dust.txt;
     document.getElementById('w-dust').style.color=dust.color;
+    const dust25=getPm25Level(aq.current?.pm2_5);
+    document.getElementById('w-dust25').textContent=dust25.txt;
+    document.getElementById('w-dust25').style.color=dust25.color;
     document.getElementById('w-uv').textContent=getUVLevel(aq.current?.uv_index||daily.uv_index_max[0]);
   }
   // 시간별 - 체감온도, 풍속 포함
@@ -899,6 +1015,8 @@ async function loadMainWeather(lat,lon,locName){
       <div style="font-size:10px;color:rgba(255,255,255,0.4)">💨${wind}</div>
     </div>`;
   }
+  // 시간별 기온 꺾은선 그래프
+  drawTempGraph(hourly,startIdx);
   // 일별 - 온도 바 그래프 추가
   const ww=document.getElementById('w-weekly');ww.innerHTML='';
   document.getElementById('w-forecast-days').textContent=(daily.time?.length||7)+' 일';
@@ -1446,7 +1564,6 @@ async function sendImage(input){
     reader.readAsArrayBuffer(file);
   }catch(e){toast('전송 실패');}
 }
-let firstLoadM=false;
 function dateLabel(ts){
   return `${ts.getFullYear()}년 ${ts.getMonth()+1}월 ${ts.getDate()}일`;
 }
@@ -1458,80 +1575,77 @@ function insertDateDiv(container,ts,beforeEl){
   if(beforeEl)container.insertBefore(div,beforeEl);
   else container.appendChild(div);
 }
+// 메시지 하나를 화면 요소로 조립 (초기로드/실시간/이전글 추가로드 공통 사용)
+async function buildMsgEl(id,d,isMe){
+  const txt=await DEC(d.enc,secretKey);
+  const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
+  const w=document.createElement('div');
+  w.setAttribute('data-m',id);
+  w.setAttribute('data-ts',ts.getTime());
+  w.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin:4px 12px;`;
+  if(!isMe){
+    const nm=document.createElement('div');
+    nm.style.cssText='font-size:11px;color:#666;margin-bottom:3px;padding-left:4px;';
+    nm.textContent=d.senderName||'상대방';
+    w.appendChild(nm);
+  }
+  const row=document.createElement('div');
+  row.style.cssText=`display:flex;align-items:flex-end;gap:6px;flex-direction:${isMe?'row-reverse':'row'};max-width:78%;`;
+  const b=document.createElement('div');
+  b.className='mbub';
+  b.style.cssText=`background:${isMe?'#2a2a2a':'#1e1e1e'};border-radius:${isMe?'18px 4px 18px 18px':'4px 18px 18px 18px'};padding:10px 14px;max-width:100%;`;
+  if(d.type==='image'){
+    try{
+      const binStr=atob(txt);const bytes=new Uint8Array(binStr.length);
+      for(let i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'image/jpeg'});const url=URL.createObjectURL(blob);
+      const imgEl=document.createElement('img');
+      imgEl.src=url;imgEl.style.cssText='max-width:200px;max-height:200px;border-radius:10px;display:block;cursor:pointer;';
+      imgEl.onclick=()=>{window.open(url,'_blank');};
+      b.appendChild(imgEl);
+    }catch{b.textContent='[이미지]';}
+  } else {
+    b.textContent=txt;
+  }
+  const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
+  const readMark=document.createElement('div');
+  readMark.setAttribute('data-read-m',id);
+  readMark.style.cssText='font-size:10px;color:#cc7c3a;margin-bottom:2px;';
+  readMark.textContent=isMe&&d.read===false?'1':'';
+  row.appendChild(b);row.appendChild(tm);
+  w.appendChild(row);
+  if(isMe) w.appendChild(readMark);
+  return {w,ts};
+}
+
+const MSG_PAGE_SIZE=50;
+let oldestLoadedTs=null; // 지금까지 불러온 것 중 가장 오래된 메시지 시각 (추가로드 커서)
+let loadingOlder=false;
+let hasMoreOlder=true;
+
 function listenM(){
   if(unsubM)unsubM();
-  firstLoadM=true;
-  let frag=document.createDocumentFragment();
-  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').onSnapshot(async snap=>{
+  oldestLoadedTs=null;
+  hasMoreOlder=true;
+  let isFirstBatch=true;
+  unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(MSG_PAGE_SIZE).onSnapshot(async snap=>{
     const changes=[...snap.docChanges()].reverse();
-    const isFirst=firstLoadM;
     const msgs=document.getElementById('msgs');
     for(const ch of changes){
       if(ch.type==='added'){
-        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`)||frag.querySelector(`[data-m="${id}"]`))continue;
+        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
         const d=ch.doc.data(),isMe=d.senderId===myId;
-        const txt=await DEC(d.enc,secretKey);
-        const ts=d.ts?new Date(d.ts.seconds*1000):new Date();
         document.getElementById('e-chat').style.display='none';
-        // 1. 내말 오른쪽, 상대방 왼쪽
-        const w=document.createElement('div');
-        w.setAttribute('data-m',id);
-        w.setAttribute('data-ts',ts.getTime());
-        w.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin:4px 12px;`;
-        // 2. 이름 전체 표시
-        if(!isMe){
-          const nm=document.createElement('div');
-          nm.style.cssText='font-size:11px;color:#666;margin-bottom:3px;padding-left:4px;';
-          nm.textContent=d.senderName||'상대방';
-          w.appendChild(nm);
+        const {w,ts}=await buildMsgEl(id,d,isMe);
+        if(oldestLoadedTs===null||ts.getTime()<oldestLoadedTs)oldestLoadedTs=ts.getTime();
+        // 시간순으로 맞는 위치에 바로 삽입
+        let inserted=false;
+        for(const el of [...msgs.children]){
+          if(!el.hasAttribute('data-ts'))continue;
+          const elTs=+el.getAttribute('data-ts');
+          if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
         }
-        const row=document.createElement('div');
-        row.style.cssText=`display:flex;align-items:flex-end;gap:6px;flex-direction:${isMe?'row-reverse':'row'};max-width:78%;`;
-        const b=document.createElement('div');
-        b.className='mbub';
-        b.style.cssText=`background:${isMe?'#2a2a2a':'#1e1e1e'};border-radius:${isMe?'18px 4px 18px 18px':'4px 18px 18px 18px'};padding:10px 14px;max-width:100%;`;
-        if(d.type==='image'){
-          try{
-            const binStr=atob(txt);const bytes=new Uint8Array(binStr.length);
-            for(let i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
-            const blob=new Blob([bytes],{type:'image/jpeg'});const url=URL.createObjectURL(blob);
-            const imgEl=document.createElement('img');
-            imgEl.src=url;imgEl.style.cssText='max-width:200px;max-height:200px;border-radius:10px;display:block;cursor:pointer;';
-            imgEl.onclick=()=>{window.open(url,'_blank');};
-            b.appendChild(imgEl);
-          }catch{b.textContent='[이미지]';}
-        } else {
-          b.textContent=txt;
-        }
-        const tm=document.createElement('div');tm.className='mtime';tm.textContent=fTime(ts);
-        // 내 메시지에 읽음 표시
-        const readMark=document.createElement('div');
-        readMark.setAttribute('data-read-m',id);
-        readMark.style.cssText='font-size:10px;color:#cc7c3a;margin-bottom:2px;';
-        readMark.textContent=isMe&&d.read===false?'1':'';
-        row.appendChild(b);row.appendChild(tm);
-        w.appendChild(row);
-        if(isMe) w.appendChild(readMark);
-        if(isFirst){
-          // 첫 로드: fragment에 시간순으로 삽입 (화면에는 아직 안 붙임)
-          let inserted=false;
-          for(const el of [...frag.children]){
-            if(!el.hasAttribute('data-ts'))continue;
-            const elTs=+el.getAttribute('data-ts');
-            if(ts.getTime()>elTs){frag.insertBefore(w,el);inserted=true;break;}
-          }
-          if(!inserted)frag.appendChild(w);
-        } else {
-          // 실시간 새 메시지: 바로 화면에 삽입
-          let inserted=false;
-          for(const el of [...msgs.children]){
-            if(!el.hasAttribute('data-ts'))continue;
-            const elTs=+el.getAttribute('data-ts');
-            if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
-          }
-          if(!inserted)msgs.appendChild(w);
-          rebuildDateDivs(msgs);
-        }
+        if(!inserted)msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
           // 날씨화면 스마일 표시
@@ -1553,12 +1667,50 @@ function listenM(){
         if(el&&ch.doc.data().read===true)el.textContent='';
       }
     }
-    if(isFirst){
-      msgs.appendChild(frag);
-      firstLoadM=false;
-      rebuildDateDivs(msgs);
+    rebuildDateDivs(msgs);
+    if(isFirstBatch){
+      isFirstBatch=false;
+      if(snap.docs.length<MSG_PAGE_SIZE)hasMoreOlder=false;
+      setupOlderLoadTrigger();
     }
   });
+}
+
+// 위로 스크롤 시 이전 메시지 추가로드
+function setupOlderLoadTrigger(){
+  const msgs=document.getElementById('msgs');
+  if(!msgs||msgs._olderTriggerBound)return;
+  msgs._olderTriggerBound=true;
+  msgs.addEventListener('scroll',()=>{
+    const nearEnd=msgs.scrollTop>=msgs.scrollHeight-msgs.clientHeight-150;
+    if(nearEnd)loadOlderMessages();
+  });
+}
+async function loadOlderMessages(){
+  if(loadingOlder||!hasMoreOlder||oldestLoadedTs===null)return;
+  loadingOlder=true;
+  try{
+    const cutoff=firebase.firestore.Timestamp.fromMillis(oldestLoadedTs);
+    const snap=await db.collection('rooms').doc(roomId).collection('messages')
+      .orderBy('ts','desc').startAfter(cutoff).limit(MSG_PAGE_SIZE).get();
+    if(snap.empty){hasMoreOlder=false;return;}
+    const msgs=document.getElementById('msgs');
+    const scrollHeightBefore=msgs.scrollHeight;
+    const scrollTopBefore=msgs.scrollTop;
+    const docs=[...snap.docs].reverse(); // 오래된 것부터 순서대로 조립
+    for(const doc of docs){
+      const id=doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
+      const d=doc.data(),isMe=d.senderId===myId;
+      const {w,ts}=await buildMsgEl(id,d,isMe);
+      if(ts.getTime()<oldestLoadedTs)oldestLoadedTs=ts.getTime();
+      msgs.appendChild(w); // DOM 끝(=화면상 더 위, 더 오래된 위치)에 추가
+    }
+    rebuildDateDivs(msgs);
+    if(snap.docs.length<MSG_PAGE_SIZE)hasMoreOlder=false;
+    // 스크롤 위치 보정 (새로 추가된 만큼 튀지 않게)
+    msgs.scrollTop=scrollTopBefore+(msgs.scrollHeight-scrollHeightBefore);
+  }catch(e){console.warn('loadOlderMessages:',e);}
+  loadingOlder=false;
 }
 
 // column-reverse 구조: DOM 첫 자식=화면 맨아래(최신), DOM 마지막 자식=화면 맨위(과거)
