@@ -702,7 +702,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <input class="s-inp" type="text" id="s-owner-id" placeholder="주인 아이디 입력" maxlength="30" autocomplete="off">
         <div class="s-err" id="s-owner-err"></div>
         <button class="s-btn s-btn-a" onclick="saveOwnerId()">저장</button>
-        <div class="s-note" style="margin-top:14px;opacity:0.5;font-size:11px;">파일 버전: 2026-08-08 14:28</div>
+        <div class="s-note" style="margin-top:14px;color:#e5e5e5;font-size:12px;">파일 버전: 2026-08-08 14:53</div>
       </div>
 
     </div>
@@ -1443,12 +1443,6 @@ async function sendImage(input){
 }
 let firstLoadM=false;
 function dateLabel(ts){
-  const now=new Date();
-  const d=new Date(ts.getFullYear(),ts.getMonth(),ts.getDate());
-  const t=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  const diff=(t-d)/86400000;
-  if(diff===0)return '오늘';
-  if(diff===1)return '어제';
   return `${ts.getFullYear()}년 ${ts.getMonth()+1}월 ${ts.getDate()}일`;
 }
 function insertDateDiv(container,ts,beforeEl){
@@ -1562,21 +1556,21 @@ function listenM(){
   });
 }
 
-// column-reverse 구조에서 날짜 바뀌는 지점마다 구분선 삽입 (DOM 순서: 최신이 앞, 오래된게 뒤)
+// column-reverse 구조: DOM 첫 자식=화면 맨아래(최신), DOM 마지막 자식=화면 맨위(과거)
+// 각 날짜의 '그 날 첫 메시지(=가장 오래된 메시지)' 바로 위(=DOM상 바로 뒤)에 날짜 라벨을 한 번만 삽입
 function rebuildDateDivs(msgs){
   msgs.querySelectorAll('.date-div').forEach(el=>el.remove());
   const items=[...msgs.children].filter(el=>el.hasAttribute('data-ts'));
-  // items[0] = 최신, items[끝] = 가장 오래됨
-  let prevDateStr=null; // 화면상 바로 위(더 최신 방향)의 날짜
   for(let i=0;i<items.length;i++){
     const el=items[i];
     const ts=new Date(+el.getAttribute('data-ts'));
-    const dStr=ts.toDateString();
-    if(dStr!==prevDateStr){
-      // 이 메시지보다 오래된 방향(뒤)에 구분선 삽입 = 이 메시지 뒤(다음 형제)
+    const curDay=ts.toDateString();
+    const nextEl=items[i+1];
+    const nextDay=nextEl?new Date(+nextEl.getAttribute('data-ts')).toDateString():null;
+    if(curDay!==nextDay){
+      // el이 그 날짜 안에서 가장 오래된(마지막) 메시지 → 라벨을 el 바로 뒤(=화면상 위)에 삽입
       insertDateDiv(msgs,ts,el.nextSibling);
     }
-    prevDateStr=dStr;
   }
 }
 
