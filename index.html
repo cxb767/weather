@@ -491,7 +491,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 01:22</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 01:33</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -1628,24 +1628,38 @@ function listenM(){
   oldestLoadedTs=null;
   hasMoreOlder=true;
   let isFirstBatch=true;
+  let frag=document.createDocumentFragment();
   unsubM=db.collection('rooms').doc(roomId).collection('messages').orderBy('ts','desc').limit(MSG_PAGE_SIZE).onSnapshot(async snap=>{
     const changes=[...snap.docChanges()].reverse();
+    const isFirst=isFirstBatch;
     const msgs=document.getElementById('msgs');
     for(const ch of changes){
       if(ch.type==='added'){
-        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`))continue;
+        const id=ch.doc.id;if(document.querySelector(`[data-m="${id}"]`)||frag.querySelector(`[data-m="${id}"]`))continue;
         const d=ch.doc.data(),isMe=d.senderId===myId;
         document.getElementById('e-chat').style.display='none';
         const {w,ts}=await buildMsgEl(id,d,isMe);
         if(oldestLoadedTs===null||ts.getTime()<oldestLoadedTs)oldestLoadedTs=ts.getTime();
-        // 시간순으로 맞는 위치에 바로 삽입
-        let inserted=false;
-        for(const el of [...msgs.children]){
-          if(!el.hasAttribute('data-ts'))continue;
-          const elTs=+el.getAttribute('data-ts');
-          if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
+        if(isFirst){
+          // 첫 로드: 화면 밖 fragment에 시간순으로 조립 (화면에는 아직 안 붙임)
+          let inserted=false;
+          for(const el of [...frag.children]){
+            if(!el.hasAttribute('data-ts'))continue;
+            const elTs=+el.getAttribute('data-ts');
+            if(ts.getTime()>elTs){frag.insertBefore(w,el);inserted=true;break;}
+          }
+          if(!inserted)frag.appendChild(w);
+        } else {
+          // 실시간 새 메시지(1개씩): 바로 화면에 삽입
+          let inserted=false;
+          for(const el of [...msgs.children]){
+            if(!el.hasAttribute('data-ts'))continue;
+            const elTs=+el.getAttribute('data-ts');
+            if(ts.getTime()>elTs){msgs.insertBefore(w,el);inserted=true;break;}
+          }
+          if(!inserted)msgs.appendChild(w);
+          rebuildDateDivs(msgs);
         }
-        if(!inserted)msgs.appendChild(w);
         if(!isMe){
           chatUnread++;
           // 날씨화면 스마일 표시
@@ -1667,9 +1681,10 @@ function listenM(){
         if(el&&ch.doc.data().read===true)el.textContent='';
       }
     }
-    rebuildDateDivs(msgs);
-    if(isFirstBatch){
+    if(isFirst){
+      msgs.appendChild(frag);
       isFirstBatch=false;
+      rebuildDateDivs(msgs);
       if(snap.docs.length<MSG_PAGE_SIZE)hasMoreOlder=false;
       setupOlderLoadTrigger();
     }
