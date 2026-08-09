@@ -328,6 +328,12 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
   <!-- 태양/구름 장식 -->
   <div id="w-deco" style="position:absolute;top:60px;right:24px;font-size:80px;opacity:0.9;z-index:1;line-height:1;transition:all 1s;"></div>
 
+  <!-- 새 버전 알림 배너 -->
+  <div id="update-banner" style="display:none;position:absolute;top:0;left:0;right:0;z-index:50;background:#cc7c3a;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;padding-top:max(10px,env(safe-area-inset-top));">
+    <div style="font-size:13px;color:#fff;font-weight:600;">새 버전이 있어요</div>
+    <button onclick="hardRefresh()" style="background:rgba(255,255,255,0.25);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;">🔄 새로고침</button>
+  </div>
+
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;overflow:hidden;">
     <!-- 상단 바 -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding:max(18px,env(safe-area-inset-top)) 18px 6px;flex-shrink:0;">
@@ -487,7 +493,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 09:25</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 10:29</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -920,6 +926,24 @@ function buildWeatherSummary(d,daily,c){
   return'쾌적하고 좋은 날씨예요';
 }
 // ===== 기상청 API 연동 =====
+// ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
+const APP_BUILD_VERSION='2026-08-09 10:29';
+async function checkAppVersion(){
+  if(!db||!roomId)return;
+  try{
+    const ref=db.collection('rooms').doc(roomId).collection('meta').doc('version');
+    const snap=await ref.get();
+    const shared=snap.exists?snap.data().build:null;
+    if(shared&&shared>APP_BUILD_VERSION){
+      const b=document.getElementById('update-banner');
+      if(b)b.style.display='flex';
+    }
+    if(!shared||APP_BUILD_VERSION>shared){
+      await ref.set({build:APP_BUILD_VERSION},{merge:true});
+    }
+  }catch(e){console.warn('버전 확인 실패:',e);}
+}
+
 const KMA_KEY='0eNwmBUFQY-jcJgVBSGPCg';
 function latLonToGrid(lat,lon){
   const RE=6371.00877,GRID=5.0,SLAT1=30.0,SLAT2=60.0,OLON=126.0,OLAT=38.0,XO=43,YO=136;
@@ -983,7 +1007,7 @@ async function fetchKmaUltra(nx,ny){
       const j=await r.json();
       const items=j?.response?.body?.items?.item;
       if(!items||j?.response?.header?.resultCode!=='00')continue;
-      const o={};
+      const o={_baseDate:baseDate,_baseTime:baseTime};
       items.forEach(it=>{o[it.category]=it.obsrValue;});
       return o;
     }catch{continue;}
@@ -1107,6 +1131,13 @@ async function loadMainWeather(lat,lon,locName){
         document.getElementById('w-rain').textContent=kmaRain+'%';
         document.getElementById('w-rain-mm').textContent=kmaRainMm>0?kmaRainMm+'mm':'';
         document.getElementById('w-rain-msg').textContent=kmaRain>0?`강수확률 ${kmaRain}%`+(kmaRainMm>0?` · ${kmaRainMm}mm`:''):'당분간 강수 없음';
+      }
+      // 관측 기준시각 표시
+      if(ultra._baseDate&&ultra._baseTime){
+        const bd=ultra._baseDate,bt=ultra._baseTime;
+        const label=`${bd.slice(4,6)}.${bd.slice(6,8)} ${bt.slice(0,2)}:${bt.slice(2,4)} 기준`;
+        const timeEl=document.getElementById('w-time');
+        if(timeEl)timeEl.textContent=label;
       }
     }
   }catch(e){console.warn('KMA 보강 실패, 기존 값 유지:',e);}
@@ -1269,19 +1300,8 @@ function selectSearchCity(lat,lon,name){
   document.getElementById('w-scroll').scrollTop=0;
 }
 
-function updateTime(){
-  const now=new Date();
-  const days=['일','월','화','수','목','금','토'];
-  const d=days[now.getDay()];
-  const t=now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-  const el=document.getElementById('w-time');
-  if(el)el.textContent=`${d} ${t}`;
-}
-
 async function showWeather(){
   document.getElementById('weather-screen').style.display='flex';
-  updateTime();
-  setInterval(updateTime,10000);
   if(!weatherLoaded){weatherLoaded=true;loadMainWeather(null,null,null);loadCityWeather();}
   // 날씨화면에서 새메시지 감지
   startWeatherListener();
@@ -1553,6 +1573,7 @@ async function iUnlock(){
 // ROOM
 async function enterRoom(){
   try{
+    checkAppVersion();
     const doc=await db.collection('rooms').doc(roomId).get();
     if(!doc.exists)await db.collection('rooms').doc(roomId).set({created:firebase.firestore.FieldValue.serverTimestamp()});
     const snap=await db.collection('rooms').doc(roomId).collection('presence').get();
@@ -2047,6 +2068,7 @@ async function initApp(){
       const s=JSON.parse(su);
       roomId=s.code.toUpperCase();
       if(!myId){myId=localStorage.getItem('my_uid')||('u_'+crypto.randomUUID().substring(0,8));localStorage.setItem('my_uid',myId);}
+      checkAppVersion();
     }
   }catch(e){console.error(e);}
   showWeather();
