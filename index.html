@@ -493,7 +493,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 11:35</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 11:43</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -927,7 +927,7 @@ function buildWeatherSummary(d,daily,c){
 }
 // ===== 기상청 API 연동 =====
 // ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
-const APP_BUILD_VERSION='2026-08-09 11:35';
+const APP_BUILD_VERSION='2026-08-09 11:43';
 async function checkAppVersion(){
   if(!db||!roomId)return;
   try{
@@ -2095,7 +2095,9 @@ function leaveRoomSafely(){
   ov.id='privacy-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#0a1628;display:none;';
   document.body.appendChild(ov);
+  let revealTimer=null;
   function hidePrivacy(){
+    if(revealTimer){clearTimeout(revealTimer);revealTimer=null;}
     ov.style.display='flex';
     const sch=document.getElementById('sch');
     const weatherScreen=document.getElementById('weather-screen');
@@ -2109,15 +2111,18 @@ function leaveRoomSafely(){
     }
   }
   function showPrivacy(){
-    ov.style.display='none';
-    const sch=document.getElementById('sch');
-    const weatherScreen=document.getElementById('weather-screen');
-    if(sch)sch.style.filter='none';
-    if(weatherScreen)weatherScreen.style.filter='none';
-    const m=document.getElementById('msgs'),p=document.getElementById('posts');
-    if(m)m.style.filter='none';
-    if(p)p.style.filter='none';
-    if(!document.hidden&&inRoom&&!unsubM)reconnect();
+    if(revealTimer){clearTimeout(revealTimer);revealTimer=null;}
+    revealTimer=setTimeout(()=>{
+      ov.style.display='none';
+      const sch=document.getElementById('sch');
+      const weatherScreen=document.getElementById('weather-screen');
+      if(sch)sch.style.filter='none';
+      if(weatherScreen)weatherScreen.style.filter='none';
+      const m=document.getElementById('msgs'),p=document.getElementById('posts');
+      if(m)m.style.filter='none';
+      if(p)p.style.filter='none';
+      if(!document.hidden&&inRoom&&!unsubM)reconnect();
+    },250);
   }
   window.addEventListener('blur',hidePrivacy);
   window.addEventListener('pagehide',hidePrivacy);
