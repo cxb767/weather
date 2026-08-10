@@ -13,15 +13,6 @@
 <title>날씨</title>
 <link rel="manifest" href="/weather/manifest.json">
 <style>
-#w-deco.has-msg{
-  border-radius:50%;
-  box-shadow:0 0 0 4px rgba(204,124,58,0.9),0 0 20px 6px rgba(204,124,58,0.5);
-  animation:decoGlow 1.6s ease-in-out infinite;
-}
-@keyframes decoGlow{
-  0%,100%{box-shadow:0 0 0 4px rgba(204,124,58,0.9),0 0 20px 6px rgba(204,124,58,0.5);}
-  50%{box-shadow:0 0 0 4px rgba(204,124,58,0.5),0 0 26px 10px rgba(204,124,58,0.7);}
-}
 :root{
   --bg:#050505;
   --s1:#0c0c0c;
@@ -502,7 +493,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 11:30</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 14:05</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -936,7 +927,7 @@ function buildWeatherSummary(d,daily,c){
 }
 // ===== 기상청 API 연동 =====
 // ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
-const APP_BUILD_VERSION='2026-08-10 11:30';
+const APP_BUILD_VERSION='2026-08-10 14:05';
 async function checkAppVersion(){
   if(!db||!roomId)return;
   try{
@@ -1102,7 +1093,6 @@ async function loadMainWeather(lat,lon,locName){
   document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:none;margin-left:6px;">🙂</span>';
   if(hasNewMsg){
     const nb=document.getElementById('w-msg-badge');if(nb)nb.style.display='inline';
-    const deco=document.getElementById('w-deco');if(deco)deco.classList.add('has-msg');
   }
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
@@ -1666,15 +1656,14 @@ function markNewMsg(){
   hasNewMsg=true;
   const wb=document.getElementById('w-msg-badge');
   if(wb)wb.style.display='inline';
-  const deco=document.getElementById('w-deco');
-  if(deco)deco.classList.add('has-msg');
+  // 홈화면 앱 아이콘에 배지 표시 (지원 기기에서만 동작, 미지원시 조용히 무시)
+  try{if('setAppBadge' in navigator)navigator.setAppBadge(1);}catch{}
 }
 function clearNewMsg(){
   hasNewMsg=false;
   const wb=document.getElementById('w-msg-badge');
   if(wb)wb.style.display='none';
-  const deco=document.getElementById('w-deco');
-  if(deco)deco.classList.remove('has-msg');
+  try{if('clearAppBadge' in navigator)navigator.clearAppBadge();}catch{}
 }
 
 // 날씨화면 새메시지 감지 리스너
