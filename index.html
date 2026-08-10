@@ -13,6 +13,15 @@
 <title>날씨</title>
 <link rel="manifest" href="/weather/manifest.json">
 <style>
+#w-deco.has-msg{
+  border-radius:50%;
+  box-shadow:0 0 0 4px rgba(204,124,58,0.9),0 0 20px 6px rgba(204,124,58,0.5);
+  animation:decoGlow 1.6s ease-in-out infinite;
+}
+@keyframes decoGlow{
+  0%,100%{box-shadow:0 0 0 4px rgba(204,124,58,0.9),0 0 20px 6px rgba(204,124,58,0.5);}
+  50%{box-shadow:0 0 0 4px rgba(204,124,58,0.5),0 0 26px 10px rgba(204,124,58,0.7);}
+}
 :root{
   --bg:#050505;
   --s1:#0c0c0c;
@@ -493,7 +502,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-09 11:43</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 11:30</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -927,7 +936,7 @@ function buildWeatherSummary(d,daily,c){
 }
 // ===== 기상청 API 연동 =====
 // ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
-const APP_BUILD_VERSION='2026-08-09 11:43';
+const APP_BUILD_VERSION='2026-08-10 11:30';
 async function checkAppVersion(){
   if(!db||!roomId)return;
   try{
@@ -1091,7 +1100,10 @@ async function loadMainWeather(lat,lon,locName){
   }
   // 지역명 표시
   document.getElementById('w-loc-name').innerHTML=locName+' <span style="font-size:11px;opacity:0.6">📍</span><span id="w-msg-badge" style="display:none;margin-left:6px;">🙂</span>';
-  if(hasNewMsg){const nb=document.getElementById('w-msg-badge');if(nb)nb.style.display='inline';}
+  if(hasNewMsg){
+    const nb=document.getElementById('w-msg-badge');if(nb)nb.style.display='inline';
+    const deco=document.getElementById('w-deco');if(deco)deco.classList.add('has-msg');
+  }
 
   const [d,aq]=await Promise.all([fetchWeather(lat,lon),fetchAirQuality(lat,lon)]);
   if(!d){document.getElementById('w-desc-top').textContent='날씨 로드 실패';return;}
@@ -1583,8 +1595,7 @@ async function enterRoom(){
     if(fresh.docs.filter(d=>d.id!==myId).length>=2){toast('이미 2명 접속 중');return;}
   }catch(e){console.error(e);}
   document.getElementById('sch').classList.add('on');
-  hasNewMsg=false;
-  const wb=document.getElementById('w-msg-badge');if(wb)wb.style.display='none';
+  clearNewMsg();
   chatUnread=0;
   // 날씨화면 리스너 중지
   if(unsubWeather){unsubWeather();unsubWeather=null;}
@@ -1650,6 +1661,22 @@ function wRefreshEnd(){
   if(wRefreshTimer){clearTimeout(wRefreshTimer);wRefreshTimer=null;}
 }
 
+// 새메시지 표시 (스마일 + 날씨아이콘 테두리)
+function markNewMsg(){
+  hasNewMsg=true;
+  const wb=document.getElementById('w-msg-badge');
+  if(wb)wb.style.display='inline';
+  const deco=document.getElementById('w-deco');
+  if(deco)deco.classList.add('has-msg');
+}
+function clearNewMsg(){
+  hasNewMsg=false;
+  const wb=document.getElementById('w-msg-badge');
+  if(wb)wb.style.display='none';
+  const deco=document.getElementById('w-deco');
+  if(deco)deco.classList.remove('has-msg');
+}
+
 // 날씨화면 새메시지 감지 리스너
 function startWeatherListener(){
   if(!db||!roomId)return;
@@ -1660,9 +1687,7 @@ function startWeatherListener(){
       snap.docs.forEach(doc=>{
         const data=doc.data();
         if(data.senderId!==myId&&data.read===false){
-          hasNewMsg=true;
-          const wb=document.getElementById('w-msg-badge');
-          if(wb)wb.style.display='inline';
+          markNewMsg();
         }
       });
     }).catch(()=>{});
@@ -1673,9 +1698,7 @@ function startWeatherListener(){
     .onSnapshot(snap=>{
       snap.docChanges().forEach(ch=>{
         if(ch.type==='added'&&ch.doc.data().senderId!==myId){
-          hasNewMsg=true;
-          const wb=document.getElementById('w-msg-badge');
-          if(wb)wb.style.display='inline';
+          markNewMsg();
         }
       });
     });
@@ -1870,10 +1893,8 @@ function listenM(){
         }
         if(!isMe){
           chatUnread++;
-          // 날씨화면 스마일 표시
-          hasNewMsg=true;
-          const wb=document.getElementById('w-msg-badge');
-          if(wb)wb.style.display='inline';
+          // 날씨화면 스마일+아이콘 표시
+          markNewMsg();
           sendWeatherNotif();
           // 내가 채팅방 안에 있으면 즉시 읽음 처리
           if(inRoom)markAllRead();
