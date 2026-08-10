@@ -493,7 +493,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 19:39</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 21:58</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -930,7 +930,7 @@ function buildWeatherSummary(d,daily,c){
 }
 // ===== 기상청 API 연동 =====
 // ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
-const APP_BUILD_VERSION='2026-08-10 19:39';
+const APP_BUILD_VERSION='2026-08-10 21:58';
 async function checkAppVersion(){
   if(!db||!roomId)return;
   try{
@@ -2077,8 +2077,11 @@ async function chgRoom(){
   const n=document.getElementById('s-name').value.trim(),c=document.getElementById('s-code').value.trim().toUpperCase(),s=document.getElementById('s-sec').value.trim(),e=document.getElementById('s-rm-err');
   if(!n||!c){e.textContent='이름과 코드를 입력하세요';e.style.display='block';return;}
   const old=JSON.parse(localStorage.getItem(K.SU)||'{}');
-  localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:s||old.secret}));
-  e.style.display='none';closeSheet();toast('저장됨 · 재시작 후 적용');
+  const newSecret=s||old.secret;
+  localStorage.setItem(K.SU,JSON.stringify({name:n,code:c,secret:newSecret}));
+  // 메모리 값도 즉시 반영 (재시작 없이 바로 적용)
+  myName=n;roomId=c;secretKey=newSecret;
+  e.style.display='none';closeSheet();toast('저장됨 · 바로 적용됨');
 }
 function resetAll(){if(!confirm('초기화할까요?'))return;if(presIv)clearInterval(presIv);if(idleIv)clearInterval(idleIv);try{db.collection('rooms').doc(roomId).collection('presence').doc(myId).delete();}catch{}localStorage.clear();location.reload();}
 
