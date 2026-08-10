@@ -493,7 +493,7 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
     <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:8px;">개발자 전용 메뉴</div>
     <div style="font-size:13px;color:#d5d5d5;margin-bottom:6px;">등록된 개발자만 접근 가능합니다.</div>
     <div style="font-size:12px;color:#b5b5b5;margin-bottom:8px;">문의: weatherkit-dev@gmail.com</div>
-    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 14:05</div>
+    <div style="font-size:11px;color:#b5b5b5;margin-bottom:20px;">파일 버전: 2026-08-10 19:39</div>
     <div id="dev-auth-wrap" style="display:none;margin-bottom:16px;">
       <input type="password" id="dev-pw-inp" placeholder="인증 코드" autocomplete="new-password"
         style="width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;color:#c8c8c8;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
@@ -766,6 +766,9 @@ body{color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans
         <div class="s-note" style="margin-top:16px;margin-bottom:8px;">기상청 API 연결 테스트 (CORS 확인용)</div>
         <button class="s-btn s-btn-a" onclick="testKmaApi()">테스트 실행</button>
         <div id="kma-test-result" style="margin-top:10px;font-size:12px;color:#e5e5e5;white-space:pre-wrap;word-break:break-all;"></div>
+        <div class="s-note" style="margin-top:16px;margin-bottom:8px;">앱 아이콘 배지 테스트</div>
+        <button class="s-btn s-btn-a" onclick="testBadge()">배지 테스트</button>
+        <div id="badge-test-result" style="margin-top:10px;font-size:12px;color:#e5e5e5;white-space:pre-wrap;word-break:break-all;"></div>
       </div>
 
     </div>
@@ -927,7 +930,7 @@ function buildWeatherSummary(d,daily,c){
 }
 // ===== 기상청 API 연동 =====
 // ===== 버전 체크 (구버전 사용자에게 새로고침 유도) =====
-const APP_BUILD_VERSION='2026-08-10 14:05';
+const APP_BUILD_VERSION='2026-08-10 19:39';
 async function checkAppVersion(){
   if(!db||!roomId)return;
   try{
@@ -1716,6 +1719,31 @@ async function markAllRead(){
 }
 
 // 기상청 API 연동 테스트 (CORS 확인용) - 서울 좌표(nx=60,ny=127)로 초단기실황 호출
+async function testBadge(){
+  const resultEl=document.getElementById('badge-test-result');
+  let log=[];
+  log.push(`setAppBadge 존재: ${'setAppBadge' in navigator}`);
+  log.push(`서비스워커 지원: ${'serviceWorker' in navigator}`);
+  log.push(`설치모드(standalone): ${window.matchMedia('(display-mode: standalone)').matches}`);
+  if('serviceWorker' in navigator){
+    try{
+      const regs=await navigator.serviceWorker.getRegistrations();
+      log.push(`등록된 서비스워커 수: ${regs.length}`);
+    }catch(e){log.push(`서비스워커 확인 오류: ${e.message}`);}
+  }
+  if('setAppBadge' in navigator){
+    try{
+      await navigator.setAppBadge(9);
+      log.push('setAppBadge(9) 호출 성공 - 아이콘 확인해보세요');
+    }catch(e){
+      log.push(`setAppBadge 호출 실패: ${e.name} - ${e.message}`);
+    }
+  }else{
+    log.push('이 브라우저/기기는 setAppBadge 자체를 지원하지 않아요');
+  }
+  resultEl.textContent=log.join('\n');
+}
+
 async function testKmaApi(){
   const resultEl=document.getElementById('kma-test-result');
   resultEl.textContent='요청 중...';
@@ -1882,8 +1910,6 @@ function listenM(){
         }
         if(!isMe){
           chatUnread++;
-          // 날씨화면 스마일+아이콘 표시
-          markNewMsg();
           sendWeatherNotif();
           // 내가 채팅방 안에 있으면 즉시 읽음 처리
           if(inRoom)markAllRead();
